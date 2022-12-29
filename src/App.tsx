@@ -1,24 +1,24 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { FC } from 'react';
+import Home from './Components/Home/pghome';
+import './index.css';
+import { Routes,Route, Navigate} from 'react-router-dom'
+import Login from './Components/Login/pglogin';
+import UserRegister from './Components/Register/pgregister';
+import { QueryClient, QueryClientProvider } from 'react-query';
 
-function App() {
+const App: FC = () => {
+  const queryClient = new QueryClient();
+  
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route index path={process.env.PUBLIC_URL+'/'} element={<Home/>}/>
+          <Route path={process.env.PUBLIC_URL+'/login'} element={<Login usr={''} pwd={''}/>}/>
+          <Route path={process.env.PUBLIC_URL+'/register'} element={<UserRegister />}/>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </QueryClientProvider>
     </div>
   );
 }
