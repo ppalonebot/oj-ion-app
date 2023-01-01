@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import Home from './Components/Home/pghome';
+import Home from './Pages/Home/pghome';
 import './index.css';
 import { Routes,Route, Navigate} from 'react-router-dom'
-import Login from './Components/Login/pglogin';
-import UserRegister from './Components/Register/pgregister';
+import Login from './Pages/Login/pglogin';
+import UserRegister from './Pages/Register/pgregister';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
 const App: FC = () => {

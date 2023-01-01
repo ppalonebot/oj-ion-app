@@ -1,3 +1,3 @@
-# oj-ion-app
+# oj-ion-app <Pesatu>
 
-//todo: write readme
+Bringing people and technology together
