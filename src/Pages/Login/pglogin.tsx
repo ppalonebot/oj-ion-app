@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { User } from '../../Entity/User/User_model';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
 import MyDialog from '../../Components/MyDialog';
-import InputForm from '../../Components/InputForm/InputForm';
+import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
+import { API_URL } from '../../global';
+import { Link } from 'react-router-dom';
+import ResetPassword from '../ResetPassword/pgResetPassword';
 
 type Props = {
   usr: string;
@@ -14,11 +17,6 @@ type Props = {
 interface ErrLogin {
   username?: string;
   password?: string;
-}
-
-interface ErrInput {
-  field: string;
-  error:string
 }
 
 const Login: React.FC<Props> = ({ usr, pwd }) => {
@@ -32,9 +30,12 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [dialogMessage, setDialogMessage] = React.useState('Hello!');
   const [dialogTitle, setDialogTitle] = React.useState('A Title');
+  const toggleDialog = () => {
+    setIsDialogOpen(prevState => !prevState);
+  }
 
   const mutationResult  = useMutation(
-    (rpc : JsonRPC2) => fetch('http://localhost:7000/usr/rpc', {
+    (rpc : JsonRPC2) => fetch(API_URL+'/usr/rpc', {
       method: 'POST',
       body: JSON.stringify(rpc),
       credentials: 'include', //must included
@@ -107,14 +108,12 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const login: ErrLogin = {username: username, password: password} as ErrLogin
-    const rpc : JsonRPC2 = new JsonRPC2("Login",login)
+    let login: ErrLogin = {username: username, password: password} as ErrLogin
+    let rpc : JsonRPC2 = new JsonRPC2("Login",login)
     loginUser(rpc)
   }
 
-  const toggleDialog = () => {
-    setIsDialogOpen(prevState => !prevState);
-  }
+  
 
   return (
     <div className='min-w-[100vw] min-h-[100vh]'>
@@ -122,16 +121,20 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
         <p>{dialogMessage}</p>
       </MyDialog>
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-        <h1 className='text-3xl p-8'>New User Register</h1>
+        <h1 className='text-3xl p-8'>Login</h1>
         <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
           <InputForm name='username' type='text' label='Username' value={username} onChange={handleInputChange} errorMessage={errLogin.username? errLogin.username : ""} placeholder="Username or email"/>
           <InputForm name='password' type='password' label='Password' value={password} onChange={handleInputChange} errorMessage={errLogin.password? errLogin.password : ""} placeholder="Your password"/>
-          <div className='w-full flex justify-end'>
+          <div className='w-full flex justify-end gap-2'>
+          <Link to={process.env.PUBLIC_URL+"/resetpwd?email="+username} className="text-center w-1/2 hover:text-blue-700 text-white font-bold py-2 px-4 rounded">
+            Forgot Password?
+          </Link >
             <button disabled={status === 'loading'} type="submit" className="w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
         </form>
       </div>
     </div>
+    
   );
 };
 

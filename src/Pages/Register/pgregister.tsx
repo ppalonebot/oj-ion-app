@@ -1,21 +1,17 @@
 import * as React from 'react';
 import { useMutation } from 'react-query';
 import {JsonRPC2} from '../../lib/MyJsonRPC2'
-import InputForm from '../../Components/InputForm/InputForm';
+import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
 import MyDialog from '../../Components/MyDialog';
 import { User } from '../../Entity/User/User_model';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../../global';
 
 interface ErrRegister {
   name?: string;
   username?: string;
   email?: string;
   password?: string;
-}
-
-interface ErrInput {
-  field: string;
-  error:string
 }
 
 const UserRegister: React.FC = () => {
@@ -34,7 +30,7 @@ const UserRegister: React.FC = () => {
   const [dialogTitle, setDialogTitle] = React.useState('A Title');
 
   const mutationResult  = useMutation(
-    (rpc : JsonRPC2) => fetch('http://localhost:7000/usr/rpc', {//fetch(process.env.PUBLIC_URL+'/usr/rpc', {
+    (rpc : JsonRPC2) => fetch(API_URL+'/usr/rpc', {//fetch(process.env.PUBLIC_URL+'/usr/rpc', {
       method: 'POST',
       body: JSON.stringify(rpc),
       credentials: 'include', //must included

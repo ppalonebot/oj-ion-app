@@ -1,5 +1,9 @@
 import React from 'react';
 import './style.css';
+export interface ErrInput {
+  field: string;
+  error:string
+}
 
 type Props = {
   name : string;

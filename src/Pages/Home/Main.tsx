@@ -2,6 +2,7 @@ import { useQuery } from "react-query";
 import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
+import { API_URL } from "../../global";
 
 type Props = {
   user:User;
@@ -10,9 +11,9 @@ type Props = {
 const Main: React.FC<Props> = (props) => {
   const [userself, setUserself] = React.useState<User>(props.user)
   const rpc: JsonRPC2 = new JsonRPC2("GetSelf",{"uid":userself.uid})
-  const { data , isLoading, error, refetch } = useQuery(
+  const { isLoading, error, refetch } = useQuery(
     'GetSelf',
-    () => fetch('http://localhost:7000/usr/rpc',
+    () => fetch(API_URL+'/usr/rpc',
     {
       method: 'POST',
       body: JSON.stringify(rpc),
@@ -20,19 +21,30 @@ const Main: React.FC<Props> = (props) => {
       headers: { 'Content-Type': 'application/json' }
     }).then(res => res.json()),
     {
-      staleTime: 30 * 1000, // consider data stale after 30 seconds
+      staleTime: 60 * 1000, // consider data stale after 30 seconds
       refetchOnWindowFocus: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 60 * 1000
+      refetchInterval: 5*60 * 1000,
+      onError(err) {
+        logout()
+      },
+      onSuccess(data) {
+        if (data){
+          if (data.result){
+            console.log(data)
+            let u = (data as JsonRPCresult).result as User
+            let user =  new User(u.uid,u.name, u.username,u.email,u.jwt,u.isregistered)
+            user.save()
+            setUserself(user)
+          }
+          else{
+            //todo! re-login
+            logout()
+          }
+        }  
+      },
     }
   )
-
-  React.useEffect(() => {
-    if (data){
-      console.log(data)
-      setUserself((data as JsonRPCresult).result as User)
-    }  
-  }, [data])
 
   const logout = () =>{
     // Delete all cookies

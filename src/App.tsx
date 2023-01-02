@@ -1,10 +1,11 @@
 import { FC } from 'react';
-import Home from './Pages/Home/pghome';
+import Home from './Pages/Home/pgHome';
 import './index.css';
 import { Routes,Route, Navigate} from 'react-router-dom'
-import Login from './Pages/Login/pglogin';
-import UserRegister from './Pages/Register/pgregister';
+import Login from './Pages/Login/pgLogin';
+import UserRegister from './Pages/Register/pgRegister';
 import { QueryClient, QueryClientProvider } from 'react-query';
+import ResetPassword from './Pages/ResetPassword/pgResetPassword';
 
 const App: FC = () => {
   const queryClient = new QueryClient();
@@ -16,6 +17,7 @@ const App: FC = () => {
           <Route index path={process.env.PUBLIC_URL+'/'} element={<Home/>}/>
           <Route path={process.env.PUBLIC_URL+'/login'} element={<Login usr={''} pwd={''}/>}/>
           <Route path={process.env.PUBLIC_URL+'/register'} element={<UserRegister />}/>
+          <Route path={process.env.PUBLIC_URL+'/resetpwd'} element={<ResetPassword/>}/>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </QueryClientProvider>
