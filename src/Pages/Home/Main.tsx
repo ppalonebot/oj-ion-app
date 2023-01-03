@@ -10,7 +10,7 @@ type Props = {
 
 const Main: React.FC<Props> = (props) => {
   const [userself, setUserself] = React.useState<User>(props.user)
-  const rpc: JsonRPC2 = new JsonRPC2("GetSelf",{"uid":userself.uid})
+  const [rpc, setRpc] = React.useState<JsonRPC2>(new JsonRPC2("GetSelf",{"uid":userself.uid}))
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
     () => fetch(API_URL+'/usr/rpc',
@@ -18,7 +18,7 @@ const Main: React.FC<Props> = (props) => {
       method: 'POST',
       body: JSON.stringify(rpc),
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json','credentials': 'true' }
     }).then(res => res.json()),
     {
       staleTime: 60 * 1000, // consider data stale after 30 seconds
@@ -26,25 +26,40 @@ const Main: React.FC<Props> = (props) => {
       refetchIntervalInBackground: false,
       refetchInterval: 5*60 * 1000,
       onError(err) {
+        console.log("error")
+        console.log(err)
         logout()
       },
       onSuccess(data) {
+        console.log(data)
         if (data){
           if (data.result){
-            console.log(data)
             let u = (data as JsonRPCresult).result as User
             let user =  new User(u.uid,u.name, u.username,u.email,u.jwt,u.isregistered)
             user.save()
             setUserself(user)
+            if (rpc.method !== "GetSelf"){
+              setRpc({...rpc,method:"GetSelf"})
+            }
           }
           else{
-            //todo! re-login
-            logout()
+            if (rpc.method === "GetSelf"){
+              refreshToken()
+            } else {
+              logout()
+            }
           }
         }  
       },
     }
   )
+
+  const refreshToken = () =>{
+    setRpc({...rpc,method:"RefreshToken"})
+    setTimeout(function() {
+      refetch()
+    }, 200);
+  }
 
   const logout = () =>{
     // Delete all cookies
