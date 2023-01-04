@@ -51,7 +51,7 @@ const UserRegister: React.FC = () => {
           s.save()
           // setUserSelf(s)
           setTimeout(function() {
-            navigate('/');
+            navigate('/?c=50');
           }, 300);
         }
         else{

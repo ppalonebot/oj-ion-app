@@ -5,8 +5,10 @@ type Props = {
   onResend: () => void;
 }
 
+const countValue : number = 50; //seconds
+
 const Countdown: React.FC<Props> = (props) => {
-  const [countdown, setCountdown] = useState(props.countInit??60);
+  const [countdown, setCountdown] = useState(props.countInit??countValue);
 
   useEffect(() => {
     const countdownInterval = setInterval(() => {
@@ -22,14 +24,14 @@ const Countdown: React.FC<Props> = (props) => {
   }, [countdown]);
 
   const resend = () =>{
-    setCountdown(60)
+    setCountdown(countValue)
     props.onResend()
   }
 
   return (
     <p>
-      Didn't get the Email?
-      <button disabled={countdown > 0} className={`text-${countdown > 0 ? "red" : "blue"}-600 m-2`} onClick={resend}>
+      Didn't get the email?
+      <button disabled={countdown > 0} className={(countdown > 0 ? (countdown === 1 ? "text-yellow-400" : "text-red-600") : "text-green-400") +" m-2"} onClick={resend}>
         Resend {countdown > 0 && "("+countdown+" seconds)"}
       </button>
     </p>

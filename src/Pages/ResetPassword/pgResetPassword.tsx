@@ -4,7 +4,8 @@ import { API_URL } from '../../global';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
 import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
 import MyDialog from '../../Components/MyDialog';
-import Countdown from './Countdown';
+import Countdown from '../../Components/Countdown';
+import { Link } from 'react-router-dom';
 
 interface ErrResetPwd {
   email?: string;
@@ -121,10 +122,14 @@ const ResetPassword: React.FC= () => {
       <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
         <p>{dialogMessage}</p>
       </MyDialog>
+     
       {
         !isForgotPwd? <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
           <p>PLease check your email and follow the link to reset your password.</p>
           <Countdown onResend={sendPwdReset}/>
+          <Link to={process.env.PUBLIC_URL+"/login"} className="mt-16 text-center w-60 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            Login
+          </Link >
           </div> :
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
         <h1 className='text-3xl p-8'>Reset Password</h1>

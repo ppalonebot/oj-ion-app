@@ -4,7 +4,7 @@ import MyDialog from '../../Components/MyDialog';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
 import { User } from '../../Entity/User/User_model';
 import { API_URL } from '../../global';
-import Countdown from '../ResetPassword/Countdown';
+import Countdown from '../../Components/Countdown';
 
 
 interface ConfirmRegCode {
@@ -19,6 +19,9 @@ type Props = {
 }
 
 const ConfirmRegistration: React.FC<Props> = (props) => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const countInit = parseInt(searchParams.get('c')??"3");
+
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [dialogMessage, setDialogMessage] = React.useState('Hello!');
@@ -155,7 +158,7 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
       {status === "loading" && <p>Loading...</p>}
       {status === "error" && <p>Error: {"Server Error!"}</p>}
       <div className='mt-8'>
-        <Countdown onResend={resendRegEmail} countInit={4}/>
+        <Countdown onResend={resendRegEmail} countInit={countInit}/>
       </div>
     </div>
   );
