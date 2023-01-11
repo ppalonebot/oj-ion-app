@@ -3,9 +3,13 @@ import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
 import { API_URL } from "../../global";
+import { Link } from "react-router-dom";
+import Profile from "./Profile";
+import Nav from "./Nav";
 
 type Props = {
   user:User;
+  page?:string
 }
 
 const Main: React.FC<Props> = (props) => {
@@ -35,7 +39,7 @@ const Main: React.FC<Props> = (props) => {
         if (data){
           if (data.result){
             let u = (data as JsonRPCresult).result as User
-            let user =  new User(u.uid,u.name, u.username,u.email,u.jwt,u.isregistered)
+            let user =  new User(u.uid,u.name, u.username,u.email,u.jwt,u.isregistered,u.avatar)
             user.save()
             setUserself(user)
             if (rpc.method !== "GetSelf"){
@@ -75,30 +79,45 @@ const Main: React.FC<Props> = (props) => {
     }, 300);
   }
 
-  function handleRefreshClick() {
-    refetch()
-  }
+  switch (props.page) {
+    case 'profile':
+      return <Nav isLoading={isLoading} error={error} user={userself} ><Profile user={userself}/></Nav>
+    case 'about':
+      return <div>This is the about page</div>;
+    case 'contact':
+      return <div>This is the contact page</div>;
+    default:
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} >
+          <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
+          {
+            isLoading? <p className='text-center mt-10'>Loading...</p> :
+            error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
+            <>
+            
+            <p className='text-center mt-10'>Welcome {userself.name}</p>
+            <div className="mt-4 w-full flex justify-center gap-1">
+              
+              <Link 
+                to={process.env.PUBLIC_URL+"/profile"} 
+                className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                My Profile
+              </Link>
+              <button
+                type="button"
+                className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                onClick={logout}
+              >
+                Logout
+              </button>
+            </div>
 
-  return (
-    <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-      <button onClick={handleRefreshClick}>Refresh</button>
-    {
-      isLoading? <p className='text-center mt-10'>Loading...</p> :
-      error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
-      <p className='text-center mt-10'>Welcome {userself.name}</p>
-    }
-      
-      <div className="mt-4 w-full flex justify-center">
-        <button
-          type="button"
-          className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={logout}
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  );
+            </>
+          }
+          </div>
+        </Nav>
+      );
+  }
 };
 
 export default Main;

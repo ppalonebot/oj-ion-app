@@ -7,7 +7,6 @@ import MyDialog from '../../Components/MyDialog';
 import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
 import { API_URL } from '../../global';
 import { Link } from 'react-router-dom';
-import ResetPassword from '../ResetPassword/pgResetPassword';
 
 type Props = {
   usr: string;

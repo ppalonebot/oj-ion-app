@@ -5,6 +5,7 @@ interface user {
   email:string;
   jwt:string;
   isregistered:boolean;
+  avatar?:string
 }
 
 export class User implements user {
@@ -14,14 +15,16 @@ export class User implements user {
   email: string;
   jwt: string;
   isregistered: boolean;
+  avatar?:string
 
-  constructor(uid: string, name: string, username: string, email: string, jwt: string, isregistered: boolean) {
+  constructor(uid: string, name: string, username: string, email: string, jwt: string, isregistered: boolean, avatar?:string) {
     this.uid = uid;
     this.name = name;
     this.username = username;
     this.email = email;
     this.jwt = jwt;
     this.isregistered = isregistered;
+    this.avatar = avatar??""
   }
 
   save(): void {
