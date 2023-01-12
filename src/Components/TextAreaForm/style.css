@@ -1,0 +1,35 @@
+.dark-theme-textarea {
+  /* Apply the "dark" theme colors */
+  
+}
+/* Style the textarea element */
+.dark-theme-textarea textarea {
+  background-color: #2d3748;
+  color: #edf2f7;
+  width: 100% !important;
+  border-radius: 0.25rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #2d3748;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+/* Add hover and focus styles */
+.dark-theme-textarea textarea:hover,
+.dark-theme-textarea textarea:focus {
+  border-color: #718096;
+}
+
+/* Style the placeholder text */
+.dark-theme-textarea textarea::placeholder {
+  color: #a0aec0;
+}
+
+.dark-theme-textarea textarea:-webkit-autofill,
+.dark-theme-textarea textarea:-webkit-autofill:hover,
+.dark-theme-textarea textarea:-webkit-autofill:focus,
+.dark-theme-textarea textarea:-webkit-autofill:active {
+  background-color: #2d3748;
+  color: #edf2f7;
+  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s ;
+}

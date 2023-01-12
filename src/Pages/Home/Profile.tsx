@@ -3,12 +3,14 @@ import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
 import { API_URL } from "../../global";
+import Avatar from "../../Components/Avatar";
+import { Link } from "react-router-dom";
 
 type Props = {
   user:User;
 }
 
-type ProfileData = {
+export type ProfileData = {
   uid : string;
   name: string;
   username: string;
@@ -61,8 +63,26 @@ const Profile: React.FC<Props> = (props) => {
       isLoading? <p className='text-center mt-10'>Loading...</p> :
       error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
       <>
-      <p className='text-center'>Welcome {profileData.name}</p>
-      <p className='text-center'>Your Email is {profileData.email}</p>
+      <Link to={process.env.PUBLIC_URL+"/avatardetail"}>
+        <Avatar className="w-48 h-48 rounded-full object-cover" src={API_URL+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
+      </Link >
+      <div>
+        <p className="mt-2 text-center text-xl"><span className='font-bold text-orange-400'>{profileData.name}</span></p>
+        
+        <Link to={process.env.PUBLIC_URL+"/profileedit"} className="text-center w-1/2 hover:text-blue-700 text-white font-bold py-2 px-4 rounded right-0 absolute">
+          Edit
+        </Link >
+        <p className='text-center'>{profileData.status}</p>
+      </div>
+      
+      <div className="mt-4 max-w-lg">
+        <p className='mb-2'>Username: {profileData.username}</p>
+        <p className='mb-2'>Email: {profileData.email}</p>
+        <p className='mb-2'>Status: {profileData.status}</p>
+        <p className='mb-2'>Bio: {profileData.bio}</p>
+      
+      </div>
+      
       </>
     }
     </div>

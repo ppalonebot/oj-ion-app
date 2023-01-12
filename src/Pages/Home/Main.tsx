@@ -5,10 +5,12 @@ import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
 import { API_URL } from "../../global";
 import { Link } from "react-router-dom";
 import Profile from "./Profile";
-import Nav from "./Nav";
+import Nav from "./Nav/Nav";
+import AvatarDetail from "./AvatarDetail";
+import ProfileEdit from "./ProfileEdit";
 
 type Props = {
-  user:User;
+  user:User
   page?:string
 }
 
@@ -81,11 +83,11 @@ const Main: React.FC<Props> = (props) => {
 
   switch (props.page) {
     case 'profile':
-      return <Nav isLoading={isLoading} error={error} user={userself} ><Profile user={userself}/></Nav>
-    case 'about':
-      return <div>This is the about page</div>;
-    case 'contact':
-      return <div>This is the contact page</div>;
+      return <Profile user={userself}/>
+    case 'profileedit':
+      return <ProfileEdit user={userself} mainRefresh={refetch}/>;
+    case 'avatardetail':
+      return <AvatarDetail isLoading={isLoading} error={error} user={userself} mainRefresh={refetch}/>
     default:
       return (
         <Nav isLoading={isLoading} error={error} user={userself} >
