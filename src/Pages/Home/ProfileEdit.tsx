@@ -163,7 +163,7 @@ const ProfileEdit: React.FC<Props> = (props) => {
   }
 
   return (
-    <div className='min-w-[100vw] min-h-[100vh]'>
+    <>
       <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
         <p>{dialogMessage}</p>
       </MyDialog>      
@@ -186,7 +186,7 @@ const ProfileEdit: React.FC<Props> = (props) => {
         }
       </div>
       
-    </div>
+    </>
   );
 };
 

@@ -18,7 +18,7 @@ const Home: React.FC<Props> = (props) => {
   }
 
   return (
-    <div className='min-h-screen'>
+    <>
     {
       userself? userself.isregistered? <Main user={userself} page={props.page??""}/> : 
 
@@ -37,7 +37,7 @@ const Home: React.FC<Props> = (props) => {
         </div>
       </div>
     }
-    </div>
+    </>
   );
 };
 

@@ -27,6 +27,7 @@ const App: FC = () => {
           <Route path={process.env.PUBLIC_URL+'/profile'} element={<Home page={"profile"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/profileedit'} element={<Home page={"profileedit"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/avatardetail'} element={<Home page={"avatardetail"}/>}/>
+          <Route path={process.env.PUBLIC_URL+'/searchuser'} element={<Home page={"searchuser"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/login'} element={<Login usr={''} pwd={''}/>}/>
           <Route path={process.env.PUBLIC_URL+'/register'} element={<UserRegister />}/>
           <Route path={process.env.PUBLIC_URL+'/resetpwd'} element={<ResetPassword/>}/>

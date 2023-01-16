@@ -3,7 +3,7 @@ import { useMutation } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { User } from '../../Entity/User/User_model';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
-import MyDialog from '../../Components/MyDialog';
+import MyDialog, { DialogProps } from '../../Components/MyDialog';
 import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
 import { API_URL } from '../../global';
 import { Link } from 'react-router-dom';
@@ -26,11 +26,9 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
 
   const [errLogin, setErrLogin] = React.useState<ErrLogin>({})
 
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [dialogMessage, setDialogMessage] = React.useState('Hello!');
-  const [dialogTitle, setDialogTitle] = React.useState('A Title');
-  const toggleDialog = () => {
-    setIsDialogOpen(prevState => !prevState);
+  const [dialogProps, setDialogProps] = React.useState({title: "title", isDialogOpen: false, children: <p>#empty</p>} as DialogProps);
+  const toggleDialog = () =>{
+    setDialogProps({...dialogProps,isDialogOpen: !dialogProps.isDialogOpen});
   }
 
   const mutationResult  = useMutation(
@@ -67,18 +65,14 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
             }
           }
           else{
-            setIsDialogOpen(true)
-            setDialogTitle("Error "+data.error.code)
-            setDialogMessage(data.error.message)
+            setDialogProps({...dialogProps,isDialogOpen: true, title:"Error "+data.error.code, children:<p>{data.error.message}</p>});
           }
         }
       },
       onError: (error, v, ctx) => {
         // Do something after the mutation fails, such as showing an error message
         console.log(error)
-        setIsDialogOpen(true)
-        setDialogTitle("Info")
-        setDialogMessage("Server Busy")
+        setDialogProps({...dialogProps,isDialogOpen: true, title:"Info",children:<p>Server Busy</p>});
       }
     }
   );
@@ -116,8 +110,8 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
 
   return (
     <div className='min-w-[100vw] min-h-[100vh]'>
-      <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
-        <p>{dialogMessage}</p>
+      <MyDialog title={dialogProps.title} isDialogOpen={dialogProps.isDialogOpen} toggleDialog={toggleDialog} >
+        {dialogProps.children}
       </MyDialog>
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
         <h1 className='text-3xl p-8'>Login</h1>

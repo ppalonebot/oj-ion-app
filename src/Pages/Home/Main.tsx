@@ -8,6 +8,7 @@ import Profile from "./Profile";
 import Nav from "./Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
+import SearchUser from "./SearchUser";
 
 type Props = {
   user:User
@@ -37,7 +38,7 @@ const Main: React.FC<Props> = (props) => {
         logout()
       },
       onSuccess(data) {
-        console.log(data)
+        // console.log(data)
         if (data){
           if (data.result){
             let u = (data as JsonRPCresult).result as User
@@ -83,15 +84,26 @@ const Main: React.FC<Props> = (props) => {
 
   switch (props.page) {
     case 'profile':
-      return <Profile user={userself}/>
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title="User Profile">
+          <Profile user={userself}/>
+        </Nav>);
     case 'profileedit':
-      return <ProfileEdit user={userself} mainRefresh={refetch}/>;
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title="Edit Profile">
+          <ProfileEdit user={userself} mainRefresh={refetch}/>;
+        </Nav>);
     case 'avatardetail':
       return <AvatarDetail isLoading={isLoading} error={error} user={userself} mainRefresh={refetch}/>
+    case 'searchuser':
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title="Search Contact">
+          <SearchUser user={userself}/>
+        </Nav>)
     default:
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} >
-          <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title="Home">
+          <div className='p-4 flex flex-col justify-start items-center'>
           {
             isLoading? <p className='text-center mt-10'>Loading...</p> :
             error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
@@ -99,7 +111,6 @@ const Main: React.FC<Props> = (props) => {
             
             <p className='text-center mt-10'>Welcome {userself.name}</p>
             <div className="mt-4 w-full flex justify-center gap-1">
-              
               <Link 
                 to={process.env.PUBLIC_URL+"/profile"} 
                 className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">

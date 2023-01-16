@@ -1,14 +1,14 @@
 import React, {Fragment} from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
-interface Props {
+export type DialogProps = {
   title: string
   isDialogOpen: boolean;
   toggleDialog: () => void;
   children?: React.ReactNode;
 }
 
-const MyDialog: React.FC<Props> = (props) => {
+const MyDialog: React.FC<DialogProps> = (props) => {
   return (
   <Transition appear show={props.isDialogOpen} as={Fragment}>
     <Dialog as="div" className="relative z-10 " onClose={props.toggleDialog}>
@@ -42,7 +42,7 @@ const MyDialog: React.FC<Props> = (props) => {
               >
                 {props.title}
               </Dialog.Title>
-              <div className="mt-2">
+              <div className="mt-2 text-gray-200">
                 {props.children}
               </div>
 

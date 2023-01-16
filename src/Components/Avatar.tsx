@@ -21,7 +21,6 @@ const Avatar: React.FC<Props> = (props) => {
     {!visibleAva && <img className={props.className} src={process.env.PUBLIC_URL+'/default-avatar.jpg'} alt={props.alt}/>}
     </>
   )
-
 }
 
 export default Avatar
