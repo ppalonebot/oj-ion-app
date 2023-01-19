@@ -80,11 +80,7 @@ const Nav: React.FC<Props> = (props) => {
       <div className='sidebar-content'>
         {props.children}
       </div>
-    </main>
-
-      
-
-          
+    </main>        
     </>
   );
 

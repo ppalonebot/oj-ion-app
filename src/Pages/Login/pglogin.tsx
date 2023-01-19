@@ -76,7 +76,6 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
       }
     }
   );
-
   const loginUser = mutationResult.mutate;
   const status = mutationResult.status;
 

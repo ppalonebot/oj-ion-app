@@ -6,16 +6,18 @@ import { JsonRPC2 } from '../../lib/MyJsonRPC2';
 import { API_URL } from '../../global';
 import { User } from '../../Entity/User/User_model';
 import Avatar from '../../Components/Avatar';
+import { MdSearch } from 'react-icons/md';
+import CttStatus, { Contact } from '../../Components/CttStatus';
 
 type Props = {
   user:User;
 }
 
-
 type UserResult = {
   name:string;
   username:string;
   avatar:string;
+  contact:Contact|null;
 }
 
 const SearchUser: React.FC<Props> = (props) => {
@@ -35,7 +37,7 @@ const SearchUser: React.FC<Props> = (props) => {
   }
 
   const mutationResult  = useMutation(
-    (rpc : JsonRPC2) => fetch(API_URL+'/usr/rpc', {
+    (rpc : JsonRPC2) => fetch(API_URL+'/contacts/rpc', {
       method: 'POST',
       body: JSON.stringify(rpc),
       credentials: 'include', //must included
@@ -45,9 +47,14 @@ const SearchUser: React.FC<Props> = (props) => {
     }).then(res => res.json()),
     {
       onSuccess: (data,v ,ctx) => {
-        if (data.result !== null){
+        console.log(data)
+        if (data.result){
           const res: UserResult[] = data.result.map((ele: unknown)=>{
-            return ele as UserResult
+            let temp =  ele as UserResult
+            // if (temp.contact && temp.contact instanceof Contact){
+            //   temp.contact = temp.contact as Contact
+            // }
+            return temp
           })
           setSearchResult(res)
         }
@@ -85,7 +92,7 @@ const SearchUser: React.FC<Props> = (props) => {
   };
 
   return (
-    <div className='bg-esecondary-color m-2 p-6 rounded-lg'>
+    <div className='bg-esecondary-color m-2 p-2 lg:p-6 rounded-lg'>
       <MyDialog title={dialogProps.title} isDialogOpen={dialogProps.isDialogOpen} toggleDialog={toggleDialog} >
         {dialogProps.children}
       </MyDialog>
@@ -107,18 +114,27 @@ const SearchUser: React.FC<Props> = (props) => {
           className="w-1/5 bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-700 h-10 mt-7"
           disabled={status === 'loading'}
         >
-          Search
+          <span className='hidden sm:block'>Search</span>
+          <i className='sm:hidden flex justify-center'><MdSearch size={24}/></i>
         </button>
       </form>
       <div className='flex flex-wrap gap-4 justify-between'>
       {
         searchResult && searchResult.map((o, index) => (
-          o && <div key={o.username} className='flex flex-row gap-2 flex-1 min-w-[300px]'>
+          o && <div key={o.username} className='flex flex-row gap-2 flex-1 min-w-[232px] justify-between border-r-2 border-gray-700'>
             <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
-            <div className='my-auto'>
-              <p>{o.name}</p>
-              <p>@{o.username}</p>
+            <div className='my-auto flex-1'>
+              <div className=''>
+                <p>{o.name}</p>
+                <p>@{o.username}</p>
+              </div>
+              
             </div>
+          {
+            o.contact == null && <div className='flex w-20 mr-1'>
+              <CttStatus contact={o.contact} uid={props.user.uid} target={o.username}/>
+            </div>
+          }
           </div>
         ))
       }
