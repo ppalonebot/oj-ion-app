@@ -167,7 +167,7 @@ const ProfileEdit: React.FC<Props> = (props) => {
       <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
         <p>{dialogMessage}</p>
       </MyDialog>      
-      <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
+      <div className='p-4 w-full flex flex-col justify-start items-center'>
         <h1 className='text-3xl p-8'>Edit Profile</h1>
         {profileData == null && <p>Loading...</p>}
         {

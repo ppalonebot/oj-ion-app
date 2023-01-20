@@ -28,7 +28,7 @@ const Nav: React.FC<Props> = (props) => {
     },
     {
       key:1,
-      text:'Search',
+      text:'Search User',
       link:process.env.PUBLIC_URL+"/searchuser",
       ico:<MdSearch/>
     }
