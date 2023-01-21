@@ -5,6 +5,8 @@ import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
 import { API_URL } from "../../global";
 import Avatar from "../../Components/Avatar";
 import { Link } from "react-router-dom";
+import LoadingBar from "../../Components/LoadingBar/LoadingBar";
+import { MdEdit } from "react-icons/md";
 
 type Props = {
   user:User;
@@ -58,6 +60,8 @@ const Profile: React.FC<Props> = (props) => {
   )
 
   return (
+    <>
+    <LoadingBar loading={isLoading} />
     <div className='mt-8 p-4 w-full h-full flex flex-col justify-start items-center'>
     {
       isLoading? <p className='text-center mt-10'>Loading...</p> :
@@ -66,13 +70,12 @@ const Profile: React.FC<Props> = (props) => {
       <Link to={process.env.PUBLIC_URL+"/avatardetail"}>
         <Avatar className="w-48 h-48 rounded-full object-cover" src={API_URL+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
       </Link >
-      <div>
-        <p className="mt-2 text-center text-xl"><span className='font-bold text-orange-400'>{profileData.name}</span></p>
-        
-        <Link to={process.env.PUBLIC_URL+"/profileedit"} className="text-center w-1/2 hover:text-blue-700 text-white font-bold py-2 px-4 rounded right-0 absolute">
-          Edit
-        </Link >
+      <div className="flex flex-col justify-center">
+        <p className="mt-2 text-xl text-center"><span className='font-bold text-orange-400'>{profileData.name}</span></p>
         <p className='text-center'>{profileData.status}</p>
+        <Link to={process.env.PUBLIC_URL+"/profileedit"} className="flex flex-row hover:text-blue-700 text-white font-bold py-2 px-4 gap-2 justify-center">
+          <MdEdit size={22}/><span>Edit</span> 
+        </Link >
       </div>
       
       <div className="mt-4 max-w-lg">
@@ -86,6 +89,7 @@ const Profile: React.FC<Props> = (props) => {
       </>
     }
     </div>
+    </>
   );
 };
 

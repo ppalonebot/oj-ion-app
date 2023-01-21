@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../global';
 import { ProfileData } from './Profile';
 import TextAreaForm from '../../Components/TextAreaForm/TextAreaForm';
+import LoadingBar from '../../Components/LoadingBar/LoadingBar';
 
 type Props = {
   user:User;
@@ -164,6 +165,7 @@ const ProfileEdit: React.FC<Props> = (props) => {
 
   return (
     <>
+      <LoadingBar loading={status==="loading" || profileMutation.status === 'loading'} />
       <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
         <p>{dialogMessage}</p>
       </MyDialog>      

@@ -9,6 +9,7 @@ import Nav from "./Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
+import Contacts from "./Contacts";
 
 type Props = {
   user:User
@@ -99,6 +100,11 @@ const Main: React.FC<Props> = (props) => {
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title="Search Contact">
           <SearchUser user={userself}/>
+        </Nav>)
+    case 'contacts':
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={2} title="My Contacts">
+          <Contacts user={userself}/>
         </Nav>)
     default:
       return (

@@ -23,7 +23,7 @@ type UserResult = {
   contact:Contact|null;
 }
 
-const SearchUser: React.FC<Props> = (props) => {
+const Contacts: React.FC<Props> = (props) => {
   const navigate = useNavigate()
   const searchParams = new URLSearchParams(window.location.search);
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('k')??"");
@@ -106,7 +106,7 @@ const SearchUser: React.FC<Props> = (props) => {
     let nextPage = paging.page + 1
     setPaging({...paging,page : nextPage})
     setSearchTerm(lastSearchTerm)
-    navigate('/searchuser?k='+lastSearchTerm+"&p="+nextPage);
+    navigate('/contacts?k='+lastSearchTerm+"&p="+nextPage);
     doSearching(lastSearchTerm,nextPage+"")
   }
 
@@ -115,7 +115,7 @@ const SearchUser: React.FC<Props> = (props) => {
     prevPage = prevPage <= 0? 1:prevPage
     setPaging({...paging,page : prevPage})
     setSearchTerm(lastSearchTerm)
-    navigate('/searchuser?k='+lastSearchTerm+"&p="+prevPage);
+    navigate('/contacts?k='+lastSearchTerm+"&p="+prevPage);
     doSearching(lastSearchTerm,prevPage+"")
   }
   
@@ -123,7 +123,7 @@ const SearchUser: React.FC<Props> = (props) => {
     event.preventDefault();
     // perform API call with searchTerm here
     let k = searchTerm.trim()
-    navigate('/searchuser?k='+k);
+    navigate('/contacts?k='+k);
     setPaging({...paging,page:1})
     doSearching(k,"1")
     setSearchTerm(k)
@@ -231,4 +231,4 @@ const SearchUser: React.FC<Props> = (props) => {
   );
 };
 
-export default SearchUser;
+export default Contacts;

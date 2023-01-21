@@ -4,7 +4,7 @@ import { API_URL } from "../../../global";
 import Avatar from "../../../Components/Avatar";
 import { Link } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdSearch, MdAccessTimeFilled} from 'react-icons/md';
+import {  MdMenu, MdClose, MdSearch, MdAccessTimeFilled, MdPeopleAlt} from 'react-icons/md';
 import MyMenu from "../../../Components/MyMenu";
 
 type Props = React.PropsWithChildren<{ 
@@ -31,7 +31,13 @@ const Nav: React.FC<Props> = (props) => {
       text:'Search User',
       link:process.env.PUBLIC_URL+"/searchuser",
       ico:<MdSearch/>
-    }
+    },
+    {
+      key:2,
+      text:'Contacts',
+      link:process.env.PUBLIC_URL+"/contacts",
+      ico:<MdPeopleAlt/>
+    },
   ]
 
   return (

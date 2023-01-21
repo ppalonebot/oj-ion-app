@@ -1,6 +1,6 @@
 main {
   --header-height: 2rem;
-  --nav-width: 68px;
+  --nav-width: 54px;
 
   position: relative;
   margin: var(--header-height) 0 0 0;
@@ -28,7 +28,7 @@ main {
   justify-content: space-between;
   align-items: center;
   background-color: var(--eprimary-color);
-  padding: 0 1rem;
+  padding: 0 2px;
   transition: 0.25s;
   z-index: 9;
 }
@@ -76,7 +76,7 @@ main {
   display: grid;
   grid-template-columns: max-content max-content;
   column-gap: 1rem;
-  padding: 0rem 0 0 0.9rem;
+  padding: 0rem 0 0 0.45rem;
   min-height: calc(var(--header-height) + 1rem);
 }
 
@@ -96,8 +96,8 @@ main {
 .sidebar > .nav .nav-logo-name {
   font-weight: 600;
   color: var(--eprimary-color);
-  max-width: 162px;
-  min-width: 162px;
+  max-width: 183px;
+  min-width: 183px;
   align-self: center;
 }
 
