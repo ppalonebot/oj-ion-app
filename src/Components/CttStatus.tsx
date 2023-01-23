@@ -18,6 +18,14 @@ export type Contact = {
   updatedAt?: Date;
 }
 
+enum Status {
+  Accepted = "50_accepted",
+  Pending = "40_pending",
+  Waiting = "30_waiting",
+  Rejected = "20_rejected",
+  Blocked = "10_blocked"
+}
+
 const CttStatus: React.FC<Props> = (props) => {
   const [contact,setContact] = React.useState<Contact|null>(props.contact)
   const mutationResult  = useMutation(
@@ -69,7 +77,7 @@ const CttStatus: React.FC<Props> = (props) => {
     )
   } else {
     switch (contact.status) {
-      case 'pending':
+      case Status.Pending:
         return (
           <button 
             className="bg-red-500 text-white rounded hover:bg-red-700 h-8 w-full ml-2 my-auto"
@@ -78,7 +86,7 @@ const CttStatus: React.FC<Props> = (props) => {
           >
             Accept
           </button>)
-      case 'waiting':
+      case Status.Waiting:
         return (
           <button 
             className="bg-slate-700 text-white rounded h-8 w-full ml-2 my-auto"
@@ -86,7 +94,7 @@ const CttStatus: React.FC<Props> = (props) => {
           >
             Waiting
           </button>)
-      case 'accepted':
+      case Status.Accepted:
         return (<div className="w-full ml-2 my-auto flex justify-center text-green-500"><MdCheckCircle size={24}/></div>)
       default:
         return(

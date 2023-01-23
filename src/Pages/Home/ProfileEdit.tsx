@@ -13,6 +13,7 @@ import LoadingBar from '../../Components/LoadingBar/LoadingBar';
 type Props = {
   user:User;
   mainRefresh: ()=>void;
+  setNavTitle?: (t:string) => void
 }
 
 const ProfileEdit: React.FC<Props> = (props) => {
@@ -106,6 +107,7 @@ const ProfileEdit: React.FC<Props> = (props) => {
   const status = updateProfileMutt.status;
 
   React.useEffect(()=>{
+    if (props.setNavTitle) props.setNavTitle("Edit Profile")
     if (profileData == null) getProfile()
   },[])
 

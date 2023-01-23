@@ -1,11 +1,11 @@
 import React from "react";
 import { User } from "../../../Entity/User/User_model";
-import { API_URL } from "../../../global";
 import Avatar from "../../../Components/Avatar";
 import { Link } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdSearch, MdAccessTimeFilled, MdPeopleAlt} from 'react-icons/md';
+import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt} from 'react-icons/md';
 import MyMenu from "../../../Components/MyMenu";
+import { API_URL } from "../../../global";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
@@ -16,10 +16,17 @@ type Props = React.PropsWithChildren<{
   logout: () => void
 }>;
 
+export type MainLink = {
+  key: number;
+  text: string;
+  link: string;
+  ico: JSX.Element;
+}
+
 const Nav: React.FC<Props> = (props) => {
   const [show, setShow] = React.useState(false);
 
-  const pages = [
+  const pages : Array<MainLink> = [
     {
       key:0,
       text:'Home',
@@ -30,12 +37,6 @@ const Nav: React.FC<Props> = (props) => {
       key:1,
       text:'Search User',
       link:process.env.PUBLIC_URL+"/searchuser",
-      ico:<MdSearch/>
-    },
-    {
-      key:2,
-      text:'Contacts',
-      link:process.env.PUBLIC_URL+"/contacts",
       ico:<MdPeopleAlt/>
     },
   ]
@@ -60,7 +61,7 @@ const Nav: React.FC<Props> = (props) => {
             props.isLoading? <p>Loading...</p> :
             props.error? <p>Error:  {(props.error as { message: string }).message}</p> :
             
-            <Link to={process.env.PUBLIC_URL+"/profile"} className="nav-logo">
+            <Link to={process.env.PUBLIC_URL+"/myprofile"} className="nav-logo">
               <i className="nav-logo-icon">
                 <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(props.user.avatar?props.user.avatar:"/image/404notfound")} alt={props.user.username}/>
               </i>

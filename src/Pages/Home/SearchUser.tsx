@@ -3,7 +3,7 @@ import InputForm from '../../Components/InputForm/InputForm';
 import MyDialog, {DialogProps} from '../../Components/MyDialog';
 import { useMutation } from 'react-query';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
-import { API_URL } from '../../global';
+import { API_URL, UserCountResult } from '../../global';
 import { User } from '../../Entity/User/User_model';
 import Avatar from '../../Components/Avatar';
 import { MdSearch } from 'react-icons/md';
@@ -11,9 +11,11 @@ import CttStatus, { Contact } from '../../Components/CttStatus';
 import { useNavigate } from 'react-router-dom';
 import Pagination, { Paging } from '../../Components/Pagination';
 import LoadingBar from '../../Components/LoadingBar/LoadingBar';
+import { Link } from 'react-router-dom';
 
 type Props = {
   user:User;
+  setNavTitle?: (t:string) => void
 }
 
 type UserResult = {
@@ -33,7 +35,7 @@ const SearchUser: React.FC<Props> = (props) => {
     next:false,
     prev:false,
     page:parseInt(searchParams.get('p') ?? "1") ?? 1,
-    limit:10})
+    limit:UserCountResult})
   const [searchErr, setSearchErr] = useState('');
   const [status, setStatus] = useState('idle');
   const [dialogProps, setDialogProps] = useState({title: "title", isDialogOpen: false, children: <p>#empty</p>} as DialogProps);
@@ -52,7 +54,6 @@ const SearchUser: React.FC<Props> = (props) => {
     }).then(res => res.json()),
     {
       onSuccess: (data,v ,ctx) => {
-        console.log(data)
         if (data.result){
           setStatus("success")
           const res: UserResult[] = data.result.map((ele: unknown)=>{
@@ -90,12 +91,7 @@ const SearchUser: React.FC<Props> = (props) => {
   const search = mutationResult.mutate;
   //const status = mutationResult.status;
 
-  const doSearching = (k:string, page: string) => {
-    if (k === ""){
-      setDialogProps({...dialogProps, isDialogOpen: true, children:<p>Please enter a name or @username</p>, title:"Info"})
-      return
-    } 
-  
+  const doSearching = (k:string, page: string) => {  
     setStatus('loading')
     let rpc = new JsonRPC2("SearchUser", {uid: props.user.uid, keyword: k, page : page, limit: ""+paging.limit} )
     setLastSearchTerm(k)
@@ -153,17 +149,13 @@ const SearchUser: React.FC<Props> = (props) => {
   React.useEffect(()=>{
     window.addEventListener('popstate', handleSearchChange);
 
-    if (hasMountedRef.current) return;
+    if (hasMountedRef.current) return () => window.removeEventListener('popstate', handleSearchChange)
     hasMountedRef.current = true;
 
-    if (searchTerm !== ""){
-      // perform API call with searchTerm here
-      doSearching(searchTerm, paging.page+"")
-    }
+    if (props.setNavTitle) props.setNavTitle("Contacts")
+    doSearching(searchTerm, paging.page+"")
 
-    return () => {
-      window.removeEventListener('popstate', handleSearchChange);
-    };
+    return () => window.removeEventListener('popstate', handleSearchChange)
   },[])
 
   return (
@@ -200,12 +192,14 @@ const SearchUser: React.FC<Props> = (props) => {
       {
         searchResult && searchResult.map((o, index) => (
           o && <div key={o.username} className='flex flex-row gap-2 flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
-            <Avatar className='h-14 w-14 rounded-full object-cover my-auto' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
+            <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="my-auto">
+              <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
+            </Link>
             <div className='my-auto flex-1 overflow-hidden'>
-              <div className=''>
+              <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="hover:text-blue-400">
                 <p>{o.name}</p>
                 <p>@{o.username}</p>
-              </div>
+              </Link>
               
             </div>
             <div className='flex w-20'>
@@ -215,11 +209,14 @@ const SearchUser: React.FC<Props> = (props) => {
         ))
       }
       {
-        (searchResult.length === 0 && lastSearchTerm !== "" ) &&<p>{status==='loading' ? "Loading..." : "No result!"}</p>
+        (searchResult.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
+      }
+      {
+        (searchResult.length === 0) &&<p>{status==='loading' ? "Loading..." : "No result!"}</p>
       }
       </div>
       {
-        ((searchResult.length > 0 || paging.page > 1 || status==='loading') && (lastSearchTerm !== "" || status==='loading')) && 
+        (searchResult.length > 0 || paging.page > 1 || status==='loading') && 
         <Pagination {...paging} 
           nextBtn={nextSearching} 
           prevBtn={prevSearching} 

@@ -9,7 +9,7 @@ import Nav from "./Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
-import Contacts from "./Contacts";
+import ImageDetail from "./ImageDetail";
 
 type Props = {
   user:User
@@ -17,6 +17,7 @@ type Props = {
 }
 
 const Main: React.FC<Props> = (props) => {
+  const [navTitle,setNavTitle] = React.useState<string>("Home")
   const [userself, setUserself] = React.useState<User>(props.user)
   const [rpc, setRpc] = React.useState<JsonRPC2>(new JsonRPC2("GetSelf",{"uid":userself.uid}))
   const { isLoading, error, refetch } = useQuery(
@@ -86,29 +87,32 @@ const Main: React.FC<Props> = (props) => {
   switch (props.page) {
     case 'profile':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title="User Profile">
-          <Profile user={userself}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
+          <Profile key={"profile"} user={userself} setNavTitle={setNavTitle}/>
+        </Nav>);
+    case 'myprofile':
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title={navTitle}>
+          <Profile key={"myprofile"} user={userself} setNavTitle={setNavTitle}/>
         </Nav>);
     case 'profileedit':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title="Edit Profile">
-          <ProfileEdit user={userself} mainRefresh={refetch}/>;
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title={navTitle}>
+          <ProfileEdit user={userself} mainRefresh={refetch} setNavTitle={setNavTitle}/>;
         </Nav>);
     case 'avatardetail':
       return <AvatarDetail isLoading={isLoading} error={error} user={userself} mainRefresh={refetch}/>
+    case 'imagedetail':
+      return <ImageDetail />
     case 'searchuser':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title="Search Contact">
-          <SearchUser user={userself}/>
-        </Nav>)
-    case 'contacts':
-      return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={2} title="My Contacts">
-          <Contacts user={userself}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
+          <SearchUser user={userself} setNavTitle={setNavTitle}/>
         </Nav>)
     default:
+      setTimeout(()=>setNavTitle("Home"),100)
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title="Home">
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle}>
           <div className='p-4 flex flex-col justify-start items-center'>
           {
             isLoading? <p className='text-center mt-10'>Loading...</p> :
