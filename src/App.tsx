@@ -25,7 +25,6 @@ const App: FC = () => {
         <Routes>
           <Route index path={process.env.PUBLIC_URL+'/'} element={<Home/>}/>
           <Route path={process.env.PUBLIC_URL+'/profile'} element={<Home page={"profile"}/>}/>
-          <Route path={process.env.PUBLIC_URL+'/myprofile'} element={<Home page={"myprofile"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/profileedit'} element={<Home page={"profileedit"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/avatardetail'} element={<Home page={"avatardetail"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/imagedetail'} element={<Home page={"imagedetail"}/>}/>

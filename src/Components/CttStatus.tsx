@@ -2,28 +2,14 @@ import React from "react";
 import { useMutation } from "react-query";
 import { API_URL } from "../global";
 import { JsonRPC2 } from "../lib/MyJsonRPC2";
-import { MdCheckCircle } from "react-icons/md";
+import { MdPersonOutline } from "react-icons/md";
+import { STATUS } from "../Entity/Enum";
+import { Contact } from "../Entity/User/Contact_model";
 
 type Props = {
   uid:string;
   target:string;
   contact:Contact|null;
-}
-
-export type Contact = {
-  owner: string;
-  to: string;
-  status: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-enum Status {
-  Accepted = "50_accepted",
-  Pending = "40_pending",
-  Waiting = "30_waiting",
-  Rejected = "20_rejected",
-  Blocked = "10_blocked"
 }
 
 const CttStatus: React.FC<Props> = (props) => {
@@ -68,34 +54,34 @@ const CttStatus: React.FC<Props> = (props) => {
   if (!contact) {
     return(
       <button 
-        className="bg-blue-500 text-white rounded hover:bg-blue-700 h-8 w-full ml-2 my-auto"
+        className="bg-blue-500 text-white rounded hover:bg-blue-700 h-8 w-full my-auto"
         disabled={status === 'loading'}
         onClick={addBtnClicked}
       >
-        Add
+        {status === 'loading'? "Sending...":"Add"}
       </button>
     )
   } else {
     switch (contact.status) {
-      case Status.Pending:
+      case STATUS.Pending:
         return (
           <button 
-            className="bg-red-500 text-white rounded hover:bg-red-700 h-8 w-full ml-2 my-auto"
+            className="bg-red-500 text-white rounded hover:bg-red-700 h-8 w-full my-auto"
             disabled={status === 'loading'}
             onClick={addBtnClicked}
           >
-            Accept
+            {status === 'loading'? "Sending...":"Accept"}
           </button>)
-      case Status.Waiting:
+      case STATUS.Waiting:
         return (
           <button 
-            className="bg-slate-700 text-white rounded h-8 w-full ml-2 my-auto"
+            className="bg-slate-700 text-white rounded h-8 w-full my-auto"
             disabled={true}
           >
             Waiting
           </button>)
-      case Status.Accepted:
-        return (<div className="w-full ml-2 my-auto flex justify-center text-green-500"><MdCheckCircle size={24}/></div>)
+      case STATUS.Accepted:
+        return (<div className="w-full my-auto flex justify-center text-green-500"><MdPersonOutline size={24}/></div>)
       default:
         return(
           <>#empty</>

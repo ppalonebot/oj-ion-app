@@ -7,11 +7,13 @@ import { API_URL, UserCountResult } from '../../global';
 import { User } from '../../Entity/User/User_model';
 import Avatar from '../../Components/Avatar';
 import { MdSearch } from 'react-icons/md';
-import CttStatus, { Contact } from '../../Components/CttStatus';
+import CttStatus from '../../Components/CttStatus';
 import { useNavigate } from 'react-router-dom';
 import Pagination, { Paging } from '../../Components/Pagination';
 import LoadingBar from '../../Components/LoadingBar/LoadingBar';
 import { Link } from 'react-router-dom';
+import { STATUS } from '../../Entity/Enum';
+import { Contact } from '../../Entity/User/Contact_model';
 
 type Props = {
   user:User;
@@ -93,7 +95,7 @@ const SearchUser: React.FC<Props> = (props) => {
 
   const doSearching = (k:string, page: string) => {  
     setStatus('loading')
-    let rpc = new JsonRPC2("SearchUser", {uid: props.user.uid, keyword: k, page : page, limit: ""+paging.limit} )
+    let rpc = new JsonRPC2("SearchUser", {uid: props.user.uid, keyword: k, page : page, limit: ""+paging.limit, status:k?"":STATUS.Accepted} )
     setLastSearchTerm(k)
     search(rpc)
   }
@@ -134,28 +136,29 @@ const SearchUser: React.FC<Props> = (props) => {
     }
   }
 
-  const handleSearchChange = () => {
-    let urlparams = new URLSearchParams(window.location.search)
-    let k = urlparams.get('k') ?? "";
-    let page = urlparams.get('p') ?? "1"
-    setSearchTerm(k)
-    let p = parseInt(page) ?? 1;
-    setPaging({...paging,page:p})
+  // const handleSearchChange = () => {
+  //   // console.log(window.location.search)
+  //   // let urlparams = new URLSearchParams(window.location.search)
+  //   // let k = urlparams.get('k') ?? "";
+  //   // let page = urlparams.get('p') ?? "1"
+  //   // setSearchTerm(k)
+  //   // let p = parseInt(page) ?? 1;
+  //   // setPaging({...paging,page:p})
 
-    doSearching(k, page)
-  }
+  //   // doSearching(k, page)
+  // }
 
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
-    window.addEventListener('popstate', handleSearchChange);
+    // window.addEventListener('popstate', handleSearchChange);
 
-    if (hasMountedRef.current) return () => window.removeEventListener('popstate', handleSearchChange)
+    if (hasMountedRef.current) return //> window.removeEventListener('popstate', handleSearchChange)
     hasMountedRef.current = true;
 
     if (props.setNavTitle) props.setNavTitle("Contacts")
     doSearching(searchTerm, paging.page+"")
 
-    return () => window.removeEventListener('popstate', handleSearchChange)
+    return //() => window.removeEventListener('popstate', handleSearchChange)
   },[])
 
   return (

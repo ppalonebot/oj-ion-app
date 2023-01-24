@@ -10,6 +10,7 @@ import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
+import FriendReqs from "../../Components/FriendReqs";
 
 type Props = {
   user:User
@@ -30,10 +31,11 @@ const Main: React.FC<Props> = (props) => {
       headers: { 'Content-Type': 'application/json','credentials': 'true' }
     }).then(res => res.json()),
     {
-      staleTime: 60 * 1000, // consider data stale after 30 seconds
+      staleTime: 60 * 1000, // consider data stale after 60 seconds
       refetchOnWindowFocus: false,
       refetchIntervalInBackground: false,
       refetchInterval: 5*60 * 1000,
+      cacheTime: 5*60 * 1000,
       onError(err) {
         console.log("error")
         console.log(err)
@@ -87,13 +89,8 @@ const Main: React.FC<Props> = (props) => {
   switch (props.page) {
     case 'profile':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
+        <Nav key={window.location.search} isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
           <Profile key={"profile"} user={userself} setNavTitle={setNavTitle}/>
-        </Nav>);
-    case 'myprofile':
-      return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title={navTitle}>
-          <Profile key={"myprofile"} user={userself} setNavTitle={setNavTitle}/>
         </Nav>);
     case 'profileedit':
       return (
@@ -106,11 +103,10 @@ const Main: React.FC<Props> = (props) => {
       return <ImageDetail />
     case 'searchuser':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
+        <Nav key={window.location.search} isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
           <SearchUser user={userself} setNavTitle={setNavTitle}/>
         </Nav>)
     default:
-      setTimeout(()=>setNavTitle("Home"),100)
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle}>
           <div className='p-4 flex flex-col justify-start items-center'>
@@ -138,6 +134,7 @@ const Main: React.FC<Props> = (props) => {
             </>
           }
           </div>
+          <FriendReqs user={userself} setNavTitle={setNavTitle} />
         </Nav>
       );
   }

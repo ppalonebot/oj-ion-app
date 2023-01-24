@@ -12,7 +12,9 @@ export type Paging = {
 
 const Pagination: React.FC<Paging> = (props) => {
   return (
-    <div className="flex items-center justify-center p-2 mt-4">
+    <>
+    {
+      (props.prev || props.next) && <div className="flex items-center justify-center p-2 mt-4">
       <button 
         onClick={props.prevBtn}
         className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-l ${!props.prev && 'bg-gray-600 hover:bg-gray-600'}`} 
@@ -25,6 +27,8 @@ const Pagination: React.FC<Paging> = (props) => {
         disabled={!props.next || props.loading}
       >&gt;</button>
     </div>
+    }
+    </>
   );
 }
 

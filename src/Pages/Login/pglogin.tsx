@@ -43,9 +43,6 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
     }).then(res => res.json()),
     {
       onSuccess: (data,v ,ctx) => {
-        console.log(v)
-        // Do something after the mutation is successful, such as showing a success message or redirecting the user
-        console.log(data)
         if (data.result !== null){
           let s = new User(data.result.uid, data.result.name, data.result.username,data.result.email,data.result.jwt,data.result.isregistered)
           s.save()

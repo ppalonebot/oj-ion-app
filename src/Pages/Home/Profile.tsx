@@ -7,6 +7,8 @@ import Avatar from "../../Components/Avatar";
 import { Link, useNavigate } from "react-router-dom";
 import LoadingBar from "../../Components/LoadingBar/LoadingBar";
 import { MdEdit } from "react-icons/md";
+import CttStatus from "../../Components/CttStatus";
+import { Contact } from "../../Entity/User/Contact_model";
 
 type Props = {
   user:User;
@@ -23,6 +25,7 @@ export type ProfileData = {
   bio: string;
   ppic: string;
   avatar: string;
+  contact:Contact;
 }
 
 const Profile: React.FC<Props> = (props) => {
@@ -41,17 +44,19 @@ const Profile: React.FC<Props> = (props) => {
       method: 'POST',
       body: JSON.stringify(rpc),
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json','credentials': 'true' }
+      headers: { 'Content-Type': 'application/json' }
     }).then(res => res.json()),
     {
-      staleTime: 60 * 1000, // consider data stale after 30 seconds
+      staleTime: 60 * 1000, // consider data stale after 60 seconds
       refetchOnWindowFocus: false,
+      refetchOnMount: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 30*60 * 1000,
+      refetchInterval: 10*60 * 1000,
+      cacheTime: 5 * 60 * 1000,
       onError(err) {
         console.log("error")
         console.log(err)
-        navigate('/401',{ replace: true, state: { message: 'Hello from MyComponent' } });
+        navigate('/401',{ replace: true });
       },
       onSuccess(data) {
         if (data){
@@ -62,7 +67,7 @@ const Profile: React.FC<Props> = (props) => {
           }
           else{
             console.log(data.error)
-            navigate('/404',{ replace: true, state: { message: 'Hello from MyComponent' } });
+            navigate('/404',{ replace: true });
           }
         }  
       },
@@ -70,7 +75,7 @@ const Profile: React.FC<Props> = (props) => {
   )
 
   return (
-    <div key={owner??props.user.username}>
+    <>
     <LoadingBar loading={isLoading} />
     {
     profileData && <div className='mt-8 p-4 w-full h-full flex flex-col justify-start items-center'>
@@ -92,6 +97,10 @@ const Profile: React.FC<Props> = (props) => {
           {!owner && <Link to={process.env.PUBLIC_URL+"/profileedit"} className="flex flex-row hover:text-blue-700 text-white font-bold py-2 px-4 gap-2 justify-center">
             <MdEdit size={22}/><span>Edit</span> 
           </Link >}
+          {owner && <div>
+            {(!profileData) && <span>Loading...</span>}
+            {profileData && <CttStatus contact={profileData.contact} uid={props.user.uid} target={profileData.username}/>}
+          </div>}
         </div>
         
         <div className="mt-4 max-w-lg">
@@ -107,9 +116,9 @@ const Profile: React.FC<Props> = (props) => {
       </div>
     }
     {
-      !profileData && <div className='mt-8 p-4 w-full h-full flex flex-col justify-start items-center'> {isLoading? "Loading" : "Not Found!"} </div>
+      !profileData && <div className='mt-8 p-4 w-full h-full flex flex-col justify-start items-center'> {isLoading? "Loading..." : "Not Found!"} </div>
     }
-    </div>
+    </>
   );
 };
 
