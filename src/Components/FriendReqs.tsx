@@ -5,10 +5,11 @@ import Pagination, { Paging } from './Pagination';
 import { API_URL, UserCountResult } from '../global';
 import { STATUS } from '../Entity/Enum';
 import { JsonRPC2, JsonRPCresult } from '../lib/MyJsonRPC2';
-import { QueryCache, useQuery } from 'react-query';
+import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import Avatar from './Avatar';
 import CttStatus from './CttStatus';
+
 
 interface Props {
   user: User;
@@ -94,7 +95,6 @@ const FriendReqs: FC<Props> = (props) => {
    
     // const query = queryCache.find('GetSelf')
     // console.log(query)
-
     return
   },[])
 

@@ -2,9 +2,10 @@ import React from "react";
 import { useMutation } from "react-query";
 import { API_URL } from "../global";
 import { JsonRPC2 } from "../lib/MyJsonRPC2";
-import { MdPersonOutline } from "react-icons/md";
+import { MdMail } from "react-icons/md";
 import { STATUS } from "../Entity/Enum";
 import { Contact } from "../Entity/User/Contact_model";
+import { Link } from "react-router-dom";
 
 type Props = {
   uid:string;
@@ -81,7 +82,9 @@ const CttStatus: React.FC<Props> = (props) => {
             Waiting
           </button>)
       case STATUS.Accepted:
-        return (<div className="w-full my-auto flex justify-center text-green-500"><MdPersonOutline size={24}/></div>)
+        return (<div className="flex justify-center w-full">
+            <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="my-auto p-1 text-green-500 hover:scale-125 duration-150"><MdMail size={28}/></Link>
+          </div>)
       default:
         return(
           <>#empty</>

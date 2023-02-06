@@ -5,3 +5,10 @@ export type Contact = {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export type TargetUser = {
+  name : string;
+  username : string;
+  avatar : string;
+  contact: Contact;
+}

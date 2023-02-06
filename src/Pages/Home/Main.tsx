@@ -1,26 +1,42 @@
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
-import { API_URL } from "../../global";
+import { API_URL, API_WSURL } from "../../global";
 import { Link } from "react-router-dom";
 import Profile from "./Profile";
-import Nav from "./Nav/Nav";
+import Nav from "../../Components/Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
 import FriendReqs from "../../Components/FriendReqs";
+import Messenger from "./Messenger";
+import { myContext } from "../../lib/Context";
+import { TargetUser } from "../../Entity/User/Contact_model";
 
 type Props = {
   user:User
   page?:string
 }
 
+export interface Dictionary {
+  [key: string]: TargetUser;
+}
+
+const initialReconnectDelay = 1000
+const maxReconnectDelay = 16000
+
 const Main: React.FC<Props> = (props) => {
+  const ctx = React.useContext(myContext);
+  
   const [navTitle,setNavTitle] = React.useState<string>("Home")
   const [userself, setUserself] = React.useState<User>(props.user)
   const [rpc, setRpc] = React.useState<JsonRPC2>(new JsonRPC2("GetSelf",{"uid":userself.uid}))
+  const [wsstatus,setWsstatus] = React.useState("idle")
+  const [currentReconnectDelay, setCurrentReconnectDelay] = React.useState(0)
+  const [contact, setContact] = React.useState<Dictionary>({})
+
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
     () => fetch(API_URL+'/usr/rpc',
@@ -65,6 +81,42 @@ const Main: React.FC<Props> = (props) => {
     }
   )
 
+  const websockettokenMutation  = useMutation(
+		(uid:string) => fetch(API_URL+'/prf/rpc', {
+			method: 'POST',
+			body: JSON.stringify(new JsonRPC2("GetWebsocketToken",{"uid":uid})),
+			credentials: "include",
+			headers: { 
+				'Content-Type': 'application/json'
+			}
+		}).then(res => {
+			return res.json()
+		}),
+		{
+			onSuccess: (data,v ,c) => {
+        setWsstatus("success")
+				if (data.result !== null){
+          let socket = new WebSocket(API_WSURL + "/ws?jwt=" + data.result.jwt)
+          socket.addEventListener('open', (event) => { onWebsocketOpen(event) });
+          // socket.addEventListener('message', (event) => { handleNewMessage(event) });
+          socket.addEventListener('close', (event) => { onWebsocketClose(event) });
+          socket.onmessage = handleNewMessage
+          ctx.SetWs(socket)
+				}
+				else{
+          console.log("no data result")
+          console.log(data)
+				}
+			},
+			onError: (error, v, ctx) => {
+        setWsstatus("error")
+				console.log(error)
+			}
+		}
+	)
+	
+	const getwebsockettoken = websockettokenMutation.mutate
+
   const refreshToken = () =>{
     setRpc({...rpc,method:"RefreshToken"})
     setTimeout(function() {
@@ -86,11 +138,98 @@ const Main: React.FC<Props> = (props) => {
     }, 300);
   }
 
+  const handleNewMessage = (event: MessageEvent<any>) => {
+    let data = event.data;
+    
+    data = data.split(/\r?\n/)
+    for (let i = 0; i < data.length; i++) {
+      let msg = JSON.parse(data[i]);
+
+      // if (msg.sender){
+      //   msg["sender_id"] = msg.sender.id
+      //   msg["sender_name"] = msg.sender.name
+      // }
+      console.log(msg)
+
+      switch (msg.action) {
+        case "info":
+          contact[msg.sender.username] = msg.sender as TargetUser
+          setContact(contact)
+          setNavTitle(msg.sender.name)
+          break;
+        // case "send-message":
+        //   this.handleChatMessage(msg);
+        //   break;
+        // case "user-join":
+        //   this.handleUserJoined(msg);
+        //   break;
+        // case "user-left":
+        //   this.handleUserLeft(msg);
+        //   break;
+        // case "room-joined":
+        //   this.handleRoomJoined(msg);
+        //   break;
+        default:
+          break;
+      }
+
+    }
+  }
+
+  function onWebsocketOpen(e: Event) {
+    console.log("connected to WS!")
+    setCurrentReconnectDelay(1000)
+  }
+
+  function onWebsocketClose(e:CloseEvent) {
+    console.log("diconnected from WS!")
+    ctx.SetWs(null)
+
+    setTimeout(() => {
+      if (currentReconnectDelay < maxReconnectDelay) {
+        setCurrentReconnectDelay(currentReconnectDelay*2)
+      }
+      if (currentReconnectDelay > 1000*64){
+        setCurrentReconnectDelay(1000*64)
+      }
+      reconnectWs();
+    }, currentReconnectDelay + Math.floor(Math.random() * 3000));
+
+  }
+
+  const reconnectWs = ()=>{
+    if (wsstatus !== 'loading'){
+      console.log("reconnectWs")
+      setWsstatus('loading')
+      // setConnected(false)
+      getwebsockettoken(props.user.uid)
+    }
+  }
+
+  const hasMountedRef = React.useRef(false);
+  React.useEffect(()=>{
+    console.log("effect")
+
+    if (hasMountedRef.current) return
+    hasMountedRef.current = true;
+
+    reconnectWs()
+
+    return
+  },[])
+
   switch (props.page) {
+    case 'message':
+      let key = (new URLSearchParams(window.location.search).get('usr')??"")
+      // console.log(contact[key])
+      return (
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
+          <Messenger key={key} user={userself} setNavTitle={setNavTitle} target={contact}/>
+        </Nav>);
     case 'profile':
       return (
-        <Nav key={window.location.search} isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
-          <Profile key={"profile"} user={userself} setNavTitle={setNavTitle}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
+          <Profile key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
         </Nav>);
     case 'profileedit':
       return (
@@ -103,8 +242,8 @@ const Main: React.FC<Props> = (props) => {
       return <ImageDetail />
     case 'searchuser':
       return (
-        <Nav key={window.location.search} isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
-          <SearchUser user={userself} setNavTitle={setNavTitle}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
+          <SearchUser key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
         </Nav>)
     default:
       return (

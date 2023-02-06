@@ -1,11 +1,11 @@
 import React from "react";
-import { User } from "../../../Entity/User/User_model";
-import Avatar from "../../../Components/Avatar";
+import { User } from "../../Entity/User/User_model";
+import Avatar from "../Avatar";
 import { Link } from "react-router-dom";
 import './style.css';
 import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt} from 'react-icons/md';
-import MyMenu from "../../../Components/MyMenu";
-import { API_URL } from "../../../global";
+import MyMenu from "../MyMenu";
+import { API_URL } from "../../global";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
