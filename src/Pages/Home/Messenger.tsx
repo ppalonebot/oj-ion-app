@@ -1,13 +1,13 @@
 import React from 'react';
 import { User } from '../../Entity/User/User_model';
 import { myContext } from '../../lib/Context';
-import { TargetUser } from '../../Entity/User/Contact_model';
 import { Dictionary } from './Main';
 
 export type MessengerProps = {
   user:User;
   setNavTitle?: (t:string) => void
   target:Dictionary
+  isConnected:boolean;
 }
 
 interface Message {
@@ -33,13 +33,13 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   };
 
   const hasMountedRef = React.useRef(false);
+  
   React.useEffect(()=>{
-    console.log("effect")
 
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
-    if (props.setNavTitle) props.setNavTitle("@"+owner)
+    if (props.setNavTitle) props.setNavTitle( target[owner] ? target[owner].name : "@"+owner)
     if (ctx.WS !== null && owner && !target[owner]) ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}));
 
     return
@@ -52,6 +52,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   return (
     <div className="messenger-page">
+      <p>{ props.isConnected ? "connected":"disconnected"}</p>
       <p>{ target[owner] ? target[owner].name:"null"}</p>
       <div className="message-history">
         {messages && messages.map(message => (

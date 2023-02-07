@@ -36,6 +36,7 @@ const Main: React.FC<Props> = (props) => {
   const [wsstatus,setWsstatus] = React.useState("idle")
   const [currentReconnectDelay, setCurrentReconnectDelay] = React.useState(0)
   const [contact, setContact] = React.useState<Dictionary>({})
+  const [isWsConnected, setIsWsConnected] = React.useState(false)
 
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
@@ -149,13 +150,10 @@ const Main: React.FC<Props> = (props) => {
       //   msg["sender_id"] = msg.sender.id
       //   msg["sender_name"] = msg.sender.name
       // }
-      console.log(msg)
 
       switch (msg.action) {
         case "info":
-          contact[msg.sender.username] = msg.sender as TargetUser
-          setContact(contact)
-          setNavTitle(msg.sender.name)
+          handleInfo(msg)
           break;
         // case "send-message":
         //   this.handleChatMessage(msg);
@@ -172,17 +170,31 @@ const Main: React.FC<Props> = (props) => {
         default:
           break;
       }
+    }
+  }
 
+  const handleInfo = (msg:any) => {
+    contact[msg.sender.username] = msg.sender as TargetUser
+    setContact(contact)
+    if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+      setNavTitle(msg.sender.name)
     }
   }
 
   function onWebsocketOpen(e: Event) {
     console.log("connected to WS!")
     setCurrentReconnectDelay(1000)
+    setIsWsConnected(true)
+    // let owner = getParam('usr')
+    // console.log(ctx.WS)
+    // if (ctx.WS !== null && owner && !contact[owner] && window.location.pathname === '/message') {
+    //   ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}))
+    // }
   }
 
   function onWebsocketClose(e:CloseEvent) {
     console.log("diconnected from WS!")
+    setIsWsConnected(false)
     ctx.SetWs(null)
 
     setTimeout(() => {
@@ -206,9 +218,12 @@ const Main: React.FC<Props> = (props) => {
     }
   }
 
+  const getParam = (key:string) =>{
+    return new URLSearchParams(window.location.search).get(key)??""
+  }
+
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
-    console.log("effect")
 
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
@@ -220,20 +235,18 @@ const Main: React.FC<Props> = (props) => {
 
   switch (props.page) {
     case 'message':
-      let key = (new URLSearchParams(window.location.search).get('usr')??"")
-      // console.log(contact[key])
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
-          <Messenger key={key} user={userself} setNavTitle={setNavTitle} target={contact}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} target={contact}>
+          <Messenger key={isWsConnected+window.location.search} user={userself} setNavTitle={setNavTitle} target={contact} isConnected={isWsConnected}/>
         </Nav>);
     case 'profile':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle}>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-2} title={navTitle} target={contact}>
           <Profile key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
         </Nav>);
     case 'profileedit':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title={navTitle}>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-1} title={navTitle} target={contact}>
           <ProfileEdit user={userself} mainRefresh={refetch} setNavTitle={setNavTitle}/>;
         </Nav>);
     case 'avatardetail':
@@ -242,12 +255,12 @@ const Main: React.FC<Props> = (props) => {
       return <ImageDetail />
     case 'searchuser':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle}>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle} target={contact}>
           <SearchUser key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
         </Nav>)
     default:
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle}>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle} target={contact}>
           <div className='p-4 flex flex-col justify-start items-center'>
           {
             isLoading? <p className='text-center mt-10'>Loading...</p> :

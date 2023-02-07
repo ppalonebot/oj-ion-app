@@ -11,4 +11,5 @@ export type TargetUser = {
   username : string;
   avatar : string;
   contact: Contact;
+  Data: unknown;
 }
