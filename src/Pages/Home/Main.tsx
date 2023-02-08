@@ -34,7 +34,7 @@ const Main: React.FC<Props> = (props) => {
   const [userself, setUserself] = React.useState<User>(props.user)
   const [rpc, setRpc] = React.useState<JsonRPC2>(new JsonRPC2("GetSelf",{"uid":userself.uid}))
   const [wsstatus,setWsstatus] = React.useState("idle")
-  const [currentReconnectDelay, setCurrentReconnectDelay] = React.useState(0)
+  const [currentReconnectDelay, setCurrentReconnectDelay] = React.useState(initialReconnectDelay)
   const [contact, setContact] = React.useState<Dictionary>({})
   const [isWsConnected, setIsWsConnected] = React.useState(false)
 
@@ -150,7 +150,7 @@ const Main: React.FC<Props> = (props) => {
       //   msg["sender_id"] = msg.sender.id
       //   msg["sender_name"] = msg.sender.name
       // }
-
+      console.log(msg)
       switch (msg.action) {
         case "info":
           handleInfo(msg)
@@ -159,18 +159,23 @@ const Main: React.FC<Props> = (props) => {
         //   this.handleChatMessage(msg);
         //   break;
         // case "user-join":
-        //   this.handleUserJoined(msg);
+        //   handleUserJoined(msg);
         //   break;
         // case "user-left":
         //   this.handleUserLeft(msg);
         //   break;
-        // case "room-joined":
+        case "room-joined":
+          handleInfo(msg)
         //   this.handleRoomJoined(msg);
-        //   break;
+          break;
         default:
           break;
       }
     }
+  }
+
+  const handleUserJoined = (msg:any) => {
+    console.log(msg)
   }
 
   const handleInfo = (msg:any) => {
@@ -183,7 +188,7 @@ const Main: React.FC<Props> = (props) => {
 
   function onWebsocketOpen(e: Event) {
     console.log("connected to WS!")
-    setCurrentReconnectDelay(1000)
+    setCurrentReconnectDelay(initialReconnectDelay)
     setIsWsConnected(true)
     // let owner = getParam('usr')
     // console.log(ctx.WS)

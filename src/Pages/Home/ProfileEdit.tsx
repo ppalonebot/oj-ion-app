@@ -123,13 +123,13 @@ const ProfileEdit: React.FC<Props> = (props) => {
       if (errprofile.name) {
         setErrprofile({...errprofile, name: ""})
       }
-    } else if (name === 'username') {
-      if (value !== profileData?.username) {
-        setProfileData({...profileData!, username: value})
-      }
-      if (errprofile.username) {
-        setErrprofile({...errprofile, username: ""})
-      }
+    // } else if (name === 'username') {
+    //   if (value !== profileData?.username) {
+    //     setProfileData({...profileData!, username: value})
+    //   }
+    //   if (errprofile.username) {
+    //     setErrprofile({...errprofile, username: ""})
+    //   }
     } else if (name === 'email') {
       if (value !== profileData?.email) {
         setProfileData({...profileData!, email: value})
@@ -178,7 +178,6 @@ const ProfileEdit: React.FC<Props> = (props) => {
         profileData != null && 
         <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
           <InputForm name='name' type='text' label='Your Name' value={profileData.name} onChange={handleInputChange} errorMessage={errprofile.name? errprofile.name : ""} placeholder="ex: Susan Lee"/>
-          <InputForm name='username' type='text' label='Username' value={profileData.username} onChange={handleInputChange} errorMessage={errprofile.username? errprofile.username : ""} placeholder="Your unique username"/>
           <InputForm name='email' type='email' label='Email' value={profileData.email} onChange={handleInputChange} errorMessage={errprofile.email? errprofile.email : ""} placeholder="Your Email"/>
           <InputForm name='status' type='text' label='Status' value={profileData.status} onChange={handleInputChange} errorMessage={errprofile.status? errprofile.status : ""} placeholder="Status"/>
           <TextAreaForm name='bio' label='Bio' value={profileData.bio} onChange={handleInputChange} errorMessage={errprofile.bio? errprofile.bio : ""} placeholder="Bio data"/>
