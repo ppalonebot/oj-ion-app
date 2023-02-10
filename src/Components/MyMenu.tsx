@@ -23,7 +23,7 @@ const MyMenu: FC<Props> = (props) => {
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-        <Menu.Items className="absolute pb-2 flex flex-col bg-eprimary-color rounded-md w-56 right-1 mt-0 md:mt-2">
+        <Menu.Items className="absolute pb-2 flex flex-col bg-eprimary-color rounded-md w-56 right-1 mt-24 md:mt-28">
           {links.map((link) => (
             /* Use the `active` state to conditionally style the active item. */
             link.act !== 'logout' ? <Menu.Item key={link.href}>

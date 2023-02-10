@@ -13,14 +13,14 @@ import ImageDetail from "./ImageDetail";
 import FriendReqs from "../../Components/FriendReqs";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
-import { TargetUser } from "../../Entity/User/Contact_model";
+import { ContactData, TargetUser } from "../../Entity/User/Contact_model";
 
 type Props = {
   user:User
   page?:string
 }
 
-export interface Dictionary {
+export interface ContactDict {
   [key: string]: TargetUser;
 }
 
@@ -31,11 +31,12 @@ const Main: React.FC<Props> = (props) => {
   const ctx = React.useContext(myContext);
   
   const [navTitle,setNavTitle] = React.useState<string>("Home")
+  const [navSubTitle,setNavSubTitle] = React.useState<string>("")
   const [userself, setUserself] = React.useState<User>(props.user)
   const [rpc, setRpc] = React.useState<JsonRPC2>(new JsonRPC2("GetSelf",{"uid":userself.uid}))
   const [wsstatus,setWsstatus] = React.useState("idle")
   const [currentReconnectDelay, setCurrentReconnectDelay] = React.useState(initialReconnectDelay)
-  const [contact, setContact] = React.useState<Dictionary>({})
+  const [contact, setContact] = React.useState<ContactDict>({})
   const [isWsConnected, setIsWsConnected] = React.useState(false)
 
   const { isLoading, error, refetch } = useQuery(
@@ -152,20 +153,20 @@ const Main: React.FC<Props> = (props) => {
       // }
       console.log(msg)
       switch (msg.action) {
-        case "info":
-          handleInfo(msg)
-          break;
+        // case "info":
+        //   handleInfo(msg)
+        //   break;
         // case "send-message":
         //   this.handleChatMessage(msg);
         //   break;
-        // case "user-join":
-        //   handleUserJoined(msg);
-        //   break;
-        // case "user-left":
-        //   this.handleUserLeft(msg);
-        //   break;
+        case "user-join":
+          handleUserJoined(msg);
+          break;
+        case "user-left":
+          handleUserLeft(msg);
+          break;
         case "room-joined":
-          handleInfo(msg)
+          handleRoomJoined(msg)
         //   this.handleRoomJoined(msg);
           break;
         default:
@@ -174,15 +175,42 @@ const Main: React.FC<Props> = (props) => {
     }
   }
 
-  const handleUserJoined = (msg:any) => {
-    console.log(msg)
+  function setContactWsStatus(username: string,name:string, sta:string){
+    if (contact[username]){
+      contact[username].datas.wsStatus = sta
+      contact[username].datas.updated = new Date()
+    }
+    setContact(contact)
+    if (getParam('usr') === username && window.location.pathname === '/message') {
+      // setNavTitle(name + " <" + (contact[username].datas.wsStatus + ">"))
+      setNavTitle(name)
+      setNavSubTitle(contact[username].datas.wsStatus)
+    }
   }
 
-  const handleInfo = (msg:any) => {
-    contact[msg.sender.username] = msg.sender as TargetUser
+  const handleUserJoined = (msg:any) => {
+    setContactWsStatus(msg.sender.username,msg.sender.name,"online")
+  }
+
+  const handleUserLeft = (msg:any) => {
+    setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
+  }
+
+  const handleRoomJoined = (msg:any) => {
+    if (!contact[msg.sender.username]){
+      contact[msg.sender.username] = msg.sender as TargetUser
+      let d =  {updated:new Date(), wsStatus: msg.message, messages:[]} as ContactData
+      contact[msg.sender.username].datas = d
+    }
+    else{
+      contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus
+      contact[msg.sender.username].datas.updated = new Date()
+    }
     setContact(contact)
     if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+      // setNavTitle(msg.sender.name + " <" + (contact[msg.sender.username].datas.wsStatus + ">"))
       setNavTitle(msg.sender.name)
+      setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
     }
   }
 
@@ -241,8 +269,8 @@ const Main: React.FC<Props> = (props) => {
   switch (props.page) {
     case 'message':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} target={contact}>
-          <Messenger key={isWsConnected+window.location.search} user={userself} setNavTitle={setNavTitle} target={contact} isConnected={isWsConnected}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} subtitle={navSubTitle} target={contact}>
+          <Messenger key={isWsConnected+window.location.search} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
         </Nav>);
     case 'profile':
       return (

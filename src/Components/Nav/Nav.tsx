@@ -3,10 +3,10 @@ import { User } from "../../Entity/User/User_model";
 import Avatar from "../Avatar";
 import { Link } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt} from 'react-icons/md';
+import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt, MdLens} from 'react-icons/md';
 import MyMenu from "../MyMenu";
 import { API_URL } from "../../global";
-import { Dictionary } from "../../Pages/Home/Main";
+import { ContactDict } from "../../Pages/Home/Main";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
@@ -14,7 +14,8 @@ type Props = React.PropsWithChildren<{
   error: unknown;
   index:number;
   title:string;
-  target?:Dictionary;
+  subtitle?:string;
+  target?:ContactDict;
   logout: () => void;
 }>;
 
@@ -54,14 +55,18 @@ const Nav: React.FC<Props> = (props) => {
       sortedUsers.push(props.target[key]);
     }
   }
-  sortedUsers.sort((a, b) => (a.username < b.username) ? 1 : -1);
+  sortedUsers.sort((a, b) => (a.datas.updated < b.datas.updated) ? 1 : -1);
+  sortedUsers.sort((a, b) => (a.datas.wsStatus === 'online' ? -1 : 1));
 
   for (const user of sortedUsers) {
     userElements.push(
       <Link key={user.username} className={`nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
         <i className="nav-link-icon">
           <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar?user.avatar:"/image/404notfound")} alt={user.username}/>
-        </i><span className="nav-link-name">{user.name}</span>
+          {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={14}/></p>}
+        </i>
+        <span className="nav-link-name">{user.name}</span>
+        {show && user.datas.wsStatus === "online" && <span className="absolute text-green-400 rounded-full right-2 h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdLens size={14}/></span>}
       </Link>
     );
   }
@@ -70,11 +75,19 @@ const Nav: React.FC<Props> = (props) => {
     <>
     <main className={show ? 'space-toggle' : ''}>
       <header className={`header ${show ? 'space-toggle' : ''}`}>
-        <div className="header-toggle flex gap-4" onClick={() => setShow(!show)}>
-          <div className="icon hover:text-elight-font-color ml-2">{show ? <MdClose /> : <MdMenu />}</div>
-          <span className='text-esecondary-color font-semibold'>{props.title} </span>
+        <div className="flex gap-4 max-h-full" >
+          <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdClose /> : <MdMenu />}</div>
+          <div>
+            <div className='flex flex-row items-center'>
+              {props.subtitle && <i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-2 md:hidden`}><MdLens size={8}/></i>}
+              <span className="text-esecondary-color font-semibold text-lg text-ellipsis truncate">{props.title}</span>
+            </div>
+            {props.subtitle && <p className="h-3 hidden md:block">
+              <span className="text-xs flex flex-row items-center absolute bottom-1 text-slate-800"><i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-1`}><MdLens size={8}/></i> {props.subtitle}</span>
+            </p>}
+          </div>
         </div>
-        <div >
+        <div className="absolute right-0 h-8 md:h-auto bg-eprimary-color flex items-center justify-center bg-opacity-80">
           <MyMenu logout={props.logout}/>
         </div>
       </header>

@@ -1,13 +1,13 @@
 import React from 'react';
 import { User } from '../../Entity/User/User_model';
 import { myContext } from '../../lib/Context';
-import { Dictionary } from './Main';
+import { ContactDict } from './Main';
 
 export type MessengerProps = {
   user:User;
   setNavTitle?: (t:string) => void
-  target:Dictionary
-  isConnected:boolean;
+  setNavSubTitle?: (t:string) => void
+  target:ContactDict
 }
 
 interface Message {
@@ -21,7 +21,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const searchParams = new URLSearchParams(window.location.search);
   const [owner, setOwner] = React.useState<string>(searchParams.get('usr')??"");
 
-  const [target,setTarget] = React.useState<Dictionary>(props.target)
+  const [target,setTarget] = React.useState<ContactDict>(props.target)
   const [messages,setMessages] = React.useState<Array<Message>>([])
   const [newMessage, setNewMessage] = React.useState('');
 
@@ -40,6 +40,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     hasMountedRef.current = true;
 
     if (props.setNavTitle) props.setNavTitle( target[owner] ? target[owner].name : "@"+owner)
+    if (props.setNavSubTitle && target[owner]) props.setNavSubTitle( target[owner].datas.wsStatus)
     if (ctx.WS !== null && owner && !target[owner]) ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}));
 
     return
@@ -52,7 +53,6 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   return (
     <div className="messenger-page">
-      <p>{ props.isConnected ? "connected":"disconnected"}</p>
       <p>{ target[owner] ? target[owner].name:"null"}</p>
       <div className="message-history">
         {messages && messages.map(message => (

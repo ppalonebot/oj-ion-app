@@ -11,5 +11,11 @@ export type TargetUser = {
   username : string;
   avatar : string;
   contact: Contact;
-  Data: unknown;
+  datas:ContactData;
+}
+
+export type ContactData = {
+  messages : Array<string>;
+  wsStatus: string;
+  updated: Date;
 }
