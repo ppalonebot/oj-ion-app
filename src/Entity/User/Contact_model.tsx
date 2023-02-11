@@ -15,7 +15,23 @@ export type TargetUser = {
 }
 
 export type ContactData = {
-  messages : Array<string>;
+  messages : Array<Message>;
   wsStatus: string;
   updated: Date;
+  room: Room;
+}
+
+export type Room = {
+  id: string;
+  name:string;
+  private:boolean;
+}
+
+export type Message = {
+  action: string;
+  message: string;
+  target: Room | null;
+  sender: TargetUser | null;
+  status: string;
+  time: string;
 }

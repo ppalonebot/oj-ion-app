@@ -1,0 +1,51 @@
+.bln {
+  border-radius: 12px;
+  padding: 12px;
+  position: relative;
+  margin-right: 20px;
+  margin-left: 20px;
+}
+
+.bln.brgt{
+  background: #107e42;
+  border-radius: 12px 0 12px 12px;
+  
+}
+
+.bln.blft{
+  background: #c0072f;
+  border-radius: 0 12px 12px 12px;
+  
+}
+
+
+/* speech bubble 13 */
+
+.brgt:before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-left: 8px solid #107e42;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #107e42;
+  border-bottom: 8px solid transparent;
+  right: -14px;
+  top: 0px;
+}
+
+
+/* speech bubble 14 */
+
+.blft:before {
+  content: "";
+  width: 0px;
+  height: 0px;
+  position: absolute;
+  border-left: 8px solid transparent;
+  border-right: 8px solid #c0072f;
+  border-top: 8px solid #c0072f;
+  border-bottom: 8px solid transparent;
+  left: -14px;
+  top: 0px;
+}

@@ -7,20 +7,21 @@ export interface ErrInput {
 
 type Props = {
   name : string;
-  label: string;
+  label?: string;
   type: string;
   value: string;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  errorMessage: string;
+  errorMessage?: string;
   placeholder?: string;
+  className?: string;
 };
 
 const InputForm: React.FC<Props> = (props) => {
   return (
-    <div className="mb-6 dark-theme-input">
-      <label className="block text-gray-200 text-sm font-bold mb-2">
+    <div className={"dark-theme-input "+(props.className? props.className:"mb-6")}>
+      {props.label && <label className="block text-gray-200 text-sm font-bold mb-2">
         {props.label}:
-      </label>
+      </label>}
       <input
         id={props.name}
         name={props.name}
@@ -29,8 +30,8 @@ const InputForm: React.FC<Props> = (props) => {
         onChange={props.onChange}
         placeholder={props.placeholder}
       />
-      <p className='text-red-600 text-sm'>{props.errorMessage}</p>
-  </div>
+      {props.errorMessage && <p className='text-red-600 text-sm'>{props.errorMessage}</p>}
+    </div>
   );
 };
 
