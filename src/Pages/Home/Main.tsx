@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "react-query";
 import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
-import { API_URL, API_WSURL } from "../../global";
+import { API_URL, API_WSURL, messageLimit } from "../../global";
 import { Link } from "react-router-dom";
 import Profile from "./Profile";
 import Nav from "../../Components/Nav/Nav";
@@ -13,7 +13,7 @@ import ImageDetail from "./ImageDetail";
 import FriendReqs from "../../Components/FriendReqs";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
-import { ContactData, Message, Room, TargetUser } from "../../Entity/User/Contact_model";
+import { ContactData, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
 
 type Props = {
   user:User
@@ -154,9 +154,9 @@ const Main: React.FC<Props> = (props) => {
       // }
       console.log(msg)
       switch (msg.action) {
-        // case "info":
-        //   handleInfo(msg)
-        //   break;
+        case "get-msg":
+          handleGetMessage(msg)
+          break;
         case "send-message":
           handleChatMessage(msg);
           break;
@@ -172,6 +172,65 @@ const Main: React.FC<Props> = (props) => {
         default:
           break;
       }
+    }
+  }
+
+  const handleGetMessage = (msg:any) => {
+    if (contact){
+      let m = msg as Messages
+      let found = false
+      if (m.messages.length === 0) return
+      for (const key in contact) {
+        if (contact.hasOwnProperty(key)) {
+          if (contact[key].datas.room.id === m.target!.id){
+            contact[key].datas.updated = new Date()
+            if (props.user.username === m.sender!.username){
+              //disable load old msg
+              if (m.messages.length < messageLimit) contact[key].datas.page =-1
+              else contact[key].datas.page += 1
+
+              for(let i = 0; i < m.messages.length;i++){
+                let newMsg = {
+                  id:m.messages[i].id, 
+                  action:m.messages[i].action,
+                  message:m.messages[i].message,
+                  sender:{
+                    avatar: m.messages[i].sender === props.user.username? props.user.avatar : contact[m.messages[i].sender].avatar,
+                    name: m.messages[i].sender === props.user.username? props.user.name : contact[m.messages[i].sender].name,
+                    username: m.messages[i].sender === props.user.username? props.user.username : contact[m.messages[i].sender].username,
+                  },
+                  status: m.messages[i].status,
+                  target:m.target,
+                  time: m.messages[i].time,
+                } as Message
+
+                let alreadyExist = false
+                for(let j = 0; j < contact[key].datas.messages.length; j++){
+                  if (contact[key].datas.messages[j].time === newMsg.time){
+                    if (!contact[key].datas.messages[j].id){
+                      contact[key].datas.messages[j] = newMsg
+                      alreadyExist = true
+                    }
+                    else{
+                      if (contact[key].datas.messages[j].id === newMsg.id){
+                        contact[key].datas.messages[j] = newMsg
+                        alreadyExist = true
+                      }
+                    }
+                  }
+                }
+
+                if (!alreadyExist) contact[key].datas.messages.unshift(newMsg)
+              }
+            }
+            if (getParam('usr') === key && window.location.pathname === '/message'){
+              setUpdated(contact[key].datas.updated)
+            }
+            break
+          }
+        }
+      }
+      if (found) setContact(contact)
     }
   }
 
@@ -205,7 +264,6 @@ const Main: React.FC<Props> = (props) => {
       }
       if (found) setContact(contact)
     }
-
   }
 
   function setContactWsStatus(username: string,name:string, sta:string){
@@ -232,7 +290,7 @@ const Main: React.FC<Props> = (props) => {
   const handleRoomJoined = (msg:any) => {
     if (!contact[msg.sender.username]){
       contact[msg.sender.username] = msg.sender as TargetUser
-      let d =  {updated:new Date(), wsStatus: msg.message, messages:[], room:msg.target as Room} as ContactData
+      let d =  {updated:new Date(), wsStatus: msg.message, messages:[], room:msg.target as Room, scroll:0, page:0} as ContactData
       contact[msg.sender.username].datas = d
     }
     else{

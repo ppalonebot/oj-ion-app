@@ -19,6 +19,8 @@ export type ContactData = {
   wsStatus: string;
   updated: Date;
   room: Room;
+  scroll:number;
+  page:number;
 }
 
 export type Room = {
@@ -28,8 +30,18 @@ export type Room = {
 }
 
 export type Message = {
+  id:string;
   action: string;
   message: string;
+  target: Room | null;
+  sender: TargetUser | null;
+  status: string;
+  time: string;
+}
+
+export type Messages = {
+  action: string;
+  messages: Array<any>;
   target: Room | null;
   sender: TargetUser | null;
   status: string;

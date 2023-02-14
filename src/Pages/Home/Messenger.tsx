@@ -6,6 +6,7 @@ import TextAreaForm from '../../Components/TextAreaForm/TextAreaForm';
 import { MdSend } from 'react-icons/md';
 import { Message, TargetUser } from '../../Entity/User/Contact_model';
 import Balloon from '../../Components/Balloon/Ballon';
+import { messageLimit } from '../../global';
 
 export type MessengerProps = {
   user:User;
@@ -15,17 +16,35 @@ export type MessengerProps = {
 }
 
 const Messenger: React.FC<MessengerProps> = (props) => {
-  const ctx = React.useContext(myContext);
-  const searchParams = new URLSearchParams(window.location.search);
-  const [owner, setOwner] = React.useState<string>(searchParams.get('usr')??"");
-
-  const [target,setTarget] = React.useState<ContactDict>(props.target)
-  // const [messages,setMessages] = React.useState<Array<Message>>([])
-  const [newMessage, setNewMessage] = React.useState('');
+  const ctx = React.useContext(myContext)
+  const searchParams = new URLSearchParams(window.location.search)
+  const owner = searchParams.get('usr')??""
+  const [target] = React.useState<ContactDict>(props.target)
+  const [newMessage, setNewMessage] = React.useState('')
+  const msgRef = React.useRef<HTMLDivElement>(null)
+  const [btnLoad,setBtnLoad] = React.useState(false)
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement> | null) => {
     if (event) event.preventDefault();
-    if (newMessage !== "" && ctx.WS && target[owner]  && target[owner].datas.room) {
+    
+    if (newMessage === "#get-msg" && ctx.WS && target[owner]  && target[owner].datas.room) {
+      let _msg = {
+        action: 'get-msg',
+        message: "1,10",
+        target: {
+          id: target[owner].datas.room.id,
+          name: target[owner].datas.room.name
+        }
+      } as Message
+      let msg = JSON.stringify(_msg)
+
+      console.log(msg)
+
+      ctx.WS.send(msg);
+      setNewMessage("")
+
+    }
+    else if (newMessage !== "" && ctx.WS && target[owner]  && target[owner].datas.room) {
       let _msg = {
         action: 'send-message',
         message: newMessage,
@@ -55,8 +74,21 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   const hasMountedRef = React.useRef(false);
   
-  React.useEffect(()=>{
+  React.useLayoutEffect(() => {
+    if (msgRef.current) {
+      if (target[owner]){
+        msgRef.current.scrollTop = target[owner].datas.scroll === 0? 
+          msgRef.current.scrollHeight : (msgRef.current.scrollHeight - target[owner].datas.scroll) <= 850 ?  
+            msgRef.current.scrollHeight : target[owner].datas.scroll
+      }
+      else{
+        msgRef.current.scrollTop = msgRef.current.scrollHeight 
+      }
+    }
 
+  }, []);
+
+  React.useEffect(()=>{
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
@@ -67,6 +99,11 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     return
   },[])
 
+  const handleScroll = () => {
+    if (target[owner] && msgRef.current) {
+      target[owner].datas.scroll = msgRef.current.scrollTop
+    }
+  };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -78,10 +115,29 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     }
   };
 
+  const loadMoreMessage = () =>{
+    if (target[owner] && target[owner].datas.page >=0 && ctx.WS){
+      setBtnLoad(true)
+      let page = target[owner].datas.page + 1
+      let msg = JSON.stringify({
+        action: 'get-msg',
+        message: page+","+messageLimit,
+        target: {
+          id: target[owner].datas.room.id,
+          name: target[owner].datas.room.name
+        }
+      } as Message)
+
+      ctx.WS.send(msg)
+    }
+
+  }
+
   return (
     <div className="h-full max-h-full flex flex-col justify-between">
-      <div className="flex-1 overflow-auto flex justify-center w-full">
+      <div ref={msgRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
         <div className="max-w-3xl w-full">
+          {!btnLoad && target[owner] && target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
           {target[owner] && target[owner].datas.messages.map(message => (
             
             message.sender!.username === props.user.username ? 
