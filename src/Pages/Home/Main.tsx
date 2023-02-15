@@ -39,7 +39,7 @@ const Main: React.FC<Props> = (props) => {
   const [contact, setContact] = React.useState<ContactDict>({})
   const [isWsConnected, setIsWsConnected] = React.useState(false)
   const [updated, setUpdated] = React.useState(new Date())
-
+  let socket : WebSocket | null = null
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
     () => fetch(API_URL+'/usr/rpc',
@@ -99,7 +99,7 @@ const Main: React.FC<Props> = (props) => {
 			onSuccess: (data,v ,c) => {
         setWsstatus("success")
 				if (data.result !== null){
-          let socket = new WebSocket(API_WSURL + "/ws?jwt=" + data.result.jwt)
+          socket = new WebSocket(API_WSURL + "/ws?jwt=" + data.result.jwt)
           socket.addEventListener('open', (event) => { onWebsocketOpen(event) });
           // socket.addEventListener('message', (event) => { handleNewMessage(event) });
           socket.addEventListener('close', (event) => { onWebsocketClose(event) });
@@ -179,11 +179,12 @@ const Main: React.FC<Props> = (props) => {
     if (contact){
       let m = msg as Messages
       let found = false
-      if (m.messages.length === 0) return
+      // if (m.messages.length === 0) return
       for (const key in contact) {
         if (contact.hasOwnProperty(key)) {
           if (contact[key].datas.room.id === m.target!.id){
             contact[key].datas.updated = new Date()
+
             if (props.user.username === m.sender!.username){
               //disable load old msg
               if (m.messages.length < messageLimit) contact[key].datas.page =-1
@@ -255,6 +256,7 @@ const Main: React.FC<Props> = (props) => {
             
             if (!found) contact[key].datas.messages.push(message)
             found = true
+            contact[key].datas.newMsgCount +=1
             if (getParam('usr') === key && window.location.pathname === '/message'){
               setUpdated(contact[key].datas.updated)
             }
@@ -290,8 +292,19 @@ const Main: React.FC<Props> = (props) => {
   const handleRoomJoined = (msg:any) => {
     if (!contact[msg.sender.username]){
       contact[msg.sender.username] = msg.sender as TargetUser
-      let d =  {updated:new Date(), wsStatus: msg.message, messages:[], room:msg.target as Room, scroll:0, page:0} as ContactData
+      let d =  {updated:new Date(), wsStatus: msg.message, messages:[], room:msg.target as Room, scroll:0, height:0, page:0, newMsgCount: 0,firstLoad:true} as ContactData
       contact[msg.sender.username].datas = d
+
+      let m = JSON.stringify({
+        action: 'get-msg',
+        message: "1,"+messageLimit,
+        target: {
+          id: contact[msg.sender.username].datas.room.id,
+          name: contact[msg.sender.username].datas.room.name
+        }
+      } as Message)
+
+      socket!.send(m)
     }
     else{
       contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus

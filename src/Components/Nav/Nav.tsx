@@ -1,12 +1,14 @@
 import React from "react";
 import { User } from "../../Entity/User/User_model";
 import Avatar from "../Avatar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import './style.css';
 import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt, MdLens} from 'react-icons/md';
 import MyMenu from "../MyMenu";
 import { API_URL } from "../../global";
 import { ContactDict } from "../../Pages/Home/Main";
+import { myContext } from "../../lib/Context";
+import { Message } from "../../Entity/User/Contact_model";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
@@ -28,6 +30,8 @@ export type MainLink = {
 
 const Nav: React.FC<Props> = (props) => {
   const [show, setShow] = React.useState(false);
+  const ctx = React.useContext(myContext)
+  const navigate = useNavigate()
 
   const pages : Array<MainLink> = [
     {
@@ -48,6 +52,28 @@ const Nav: React.FC<Props> = (props) => {
     return new URLSearchParams(window.location.search).get(key)??""
   }
 
+  const closeRoom = (event: React.MouseEvent<HTMLButtonElement>) =>{
+    let uname = event.currentTarget.value
+    if (props.target && props.target[uname]){
+      if (ctx.WS) {
+        let msg = JSON.stringify({
+          action: 'leave-room',
+          message: props.target[uname].datas.room.id,
+          target: {
+            id: props.target[uname].datas.room.id,
+            name: props.target[uname].datas.room.name
+          },
+          status:"sent",
+          time:(new Date()).toISOString()
+        } as Message)
+
+        ctx.WS.send(msg);
+        delete props.target[uname]
+        navigate(process.env.PUBLIC_URL+'/');
+      }
+    }
+  }
+
   const userElements = [];
   const sortedUsers = [];
   for (const key in props.target) {
@@ -60,14 +86,19 @@ const Nav: React.FC<Props> = (props) => {
 
   for (const user of sortedUsers) {
     userElements.push(
-      <Link key={user.username} className={`nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
-        <i className="nav-link-icon">
-          <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar?user.avatar:"/image/404notfound")} alt={user.username}/>
-          {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={14}/></p>}
-        </i>
-        <span className="nav-link-name">{user.name}</span>
-        {show && user.datas.wsStatus === "online" && <span className="absolute text-green-400 rounded-full right-2 h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdLens size={14}/></span>}
-      </Link>
+      <div key={user.username} className="flex flex-row items-center">
+        <Link className={`w-full nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
+          <i className="nav-link-icon">
+            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar?user.avatar:"/image/404notfound")} alt={user.username}/>
+            {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={10}/></p>}
+          </i>
+          <span className="nav-link-name">{user.name}</span>
+        </Link>
+        {show && <span className={`absolute flex flex-row right-0 ${show?"":"md:hidden"}`}>
+          {user.datas.wsStatus === "online" && <span className="text-green-400 rounded-full h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdLens size={10}/></span>}
+          <button onClick={closeRoom} value={user.username} className="text-black hover:text-red-500 hover:cursor-pointer rounded-full h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdClose size={20}/></button>
+        </span>}
+      </div>
     );
   }
 

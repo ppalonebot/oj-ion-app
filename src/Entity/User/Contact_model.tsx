@@ -20,7 +20,11 @@ export type ContactData = {
   updated: Date;
   room: Room;
   scroll:number;
+  height:number;
   page:number;
+  newMsgCount:number;
+  topMsgTimeId?:string;
+  firstLoad?:boolean;
 }
 
 export type Room = {
