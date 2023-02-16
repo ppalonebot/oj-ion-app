@@ -4,7 +4,6 @@ import { MdAccessTime, MdOutlineCheck } from 'react-icons/md';
 
 type Props = React.PropsWithChildren<{
   isLeft:boolean;
-  visible:boolean;
   time:string;
   msgid:string;
   status:string;
@@ -15,11 +14,14 @@ const Balloon : React.FC<Props> = (props) => {
     <div className='absolute bottom-0 right-[-1rem]'><MdAccessTime size={14}/></div> :
     props.status === "acc" ?
     <div className='absolute bottom-0 right-[-1rem]'><MdOutlineCheck size={14}/></div> :
-    props.status === "read" ?<>
+    props.status === "delv" ?<>
     <div className='absolute bottom-0 right-[-1rem]'><MdOutlineCheck size={14}/></div>
     <div className='absolute bottom-0 right-[-1.3rem]'><MdOutlineCheck size={14}/></div>
     </> :
-    <></>
+    props.status === "read" ?<>
+    <div className='text-blue-500 absolute bottom-0 right-[-1rem]'><MdOutlineCheck size={14}/></div>
+    <div className='text-blue-700 absolute bottom-0 right-[-1.3rem]'><MdOutlineCheck size={14}/></div>
+    </> : <></>
   
   if (typeof props.children === "string" && props.children && props.children.includes('\n')) {
     const lines = (props.children! as string).split("\n");

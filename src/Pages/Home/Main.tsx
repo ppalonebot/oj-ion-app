@@ -154,6 +154,9 @@ const Main: React.FC<Props> = (props) => {
       // }
       console.log(msg)
       switch (msg.action) {
+        case "delv":
+          handleDelivered(msg)
+          break;
         case "get-msg":
           handleGetMessage(msg)
           break;
@@ -174,6 +177,31 @@ const Main: React.FC<Props> = (props) => {
       }
     }
   }
+  const handleDelivered = (msg:any) => {
+    if (contact){
+      let m = msg as Messages
+      for (const key in contact) {
+        if (contact.hasOwnProperty(key)) {
+          if (contact[key].datas.room.id === m.target!.id){
+            contact[key].datas.updated = new Date()
+
+            for(let i =0; i< contact[key].datas.messages.length; i++){
+              for(let j =0; j< m.messages.length; j++)
+              if (contact[key].datas.messages[i].time === m.messages[j].time){
+                contact[key].datas.messages[i].id = m.messages[j].id
+                contact[key].datas.messages[i].status = "delv"
+              }
+            }
+
+            if (getParam('usr') === key && window.location.pathname === '/message'){
+              setUpdated(contact[key].datas.updated)
+            }
+            break
+          }
+        }
+      }
+    }
+  }
 
   const handleGetMessage = (msg:any) => {
     if (contact){
@@ -187,7 +215,7 @@ const Main: React.FC<Props> = (props) => {
 
             if (props.user.username === m.sender!.username){
               //disable load old msg
-              if (m.messages.length < messageLimit) contact[key].datas.page =-1
+              if (m.messages && m.messages.length < messageLimit) contact[key].datas.page =-1
               else contact[key].datas.page += 1
 
               for(let i = 0; i < m.messages.length;i++){

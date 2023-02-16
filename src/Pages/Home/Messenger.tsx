@@ -109,11 +109,32 @@ const Messenger: React.FC<MessengerProps> = (props) => {
       divsRef.current.forEach((div) => {
         const rect = div.getBoundingClientRect();
 
-        if (
-          rect.top >= viewportTop &&
-          rect.bottom <= viewportBottom
-        ) {
+        if (rect.top >= viewportTop && rect.bottom <= viewportBottom) {
           newVisibleDivs.push(div.dataset.id || '');
+          let id = div.getAttribute('id')
+          if (id && id.length > 0 && ctx.WS){
+            id = id.substring(2)
+            for(let i =0 ; i< target[owner].datas.messages.length; i++){
+              if(target[owner].datas.messages[i].id === id){
+                if (target[owner].datas.messages[i].status === "read") continue
+                if (target[owner].datas.messages[i].sender?.username === props.user.username) continue
+
+                target[owner].datas.messages[i].status = "read"
+                let _msg = {
+                  action: 'read',
+                  message: target[owner].datas.messages[i].id,
+                  target: {
+                    id: target[owner].datas.room.id,
+                    name: target[owner].datas.room.name
+                  },
+                } as Message
+                let msg = JSON.stringify(_msg)
+
+                ctx.WS.send(msg);
+                break
+              }
+            }
+          }
         }
       });
 
@@ -163,12 +184,12 @@ const Messenger: React.FC<MessengerProps> = (props) => {
                 divsRef.current[target[owner].datas.messages.indexOf(message)] = el;
               }
             }}
-            data-id={message.time} id={"id"+message.id} className={message.sender!.username === props.user.username ? 'flex flex-row justify-end p-2':'flex flex-row justify-start p-2'}>
+            data-id={message.time} id={"id"+message.id} data-status={message.status} className={message.sender!.username === props.user.username ? 'flex flex-row justify-end p-2':'flex flex-row justify-start p-2'}>
               <Balloon 
                 msgid={message.id}
                 time={message.time}
                 status={message.status}
-                visible={visibleMsgs.includes(message.time)}
+                // visible={visibleMsgs.includes(message.time)}
                 isLeft={message.sender!.username !== props.user.username}>
                   {message.message}
               </Balloon>
