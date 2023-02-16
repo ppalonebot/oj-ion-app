@@ -25,6 +25,7 @@ export type ContactData = {
   newMsgCount:number;
   topMsgTimeId?:string;
   firstLoad?:boolean;
+  isActive:boolean;
 }
 
 export type Room = {

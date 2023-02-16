@@ -292,7 +292,17 @@ const Main: React.FC<Props> = (props) => {
   const handleRoomJoined = (msg:any) => {
     if (!contact[msg.sender.username]){
       contact[msg.sender.username] = msg.sender as TargetUser
-      let d =  {updated:new Date(), wsStatus: msg.message, messages:[], room:msg.target as Room, scroll:0, height:0, page:0, newMsgCount: 0,firstLoad:true} as ContactData
+      let d =  {
+        updated:new Date(), 
+        wsStatus: msg.message, 
+        messages:[], room:msg.target as Room, 
+        scroll:0, 
+        height:0, 
+        page:0, 
+        newMsgCount: 0,
+        firstLoad:true, 
+        isActive: false
+      } as ContactData
       contact[msg.sender.username].datas = d
 
       let m = JSON.stringify({

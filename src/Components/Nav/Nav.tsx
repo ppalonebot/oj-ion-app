@@ -3,12 +3,13 @@ import { User } from "../../Entity/User/User_model";
 import Avatar from "../Avatar";
 import { Link, useNavigate } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt, MdLens} from 'react-icons/md';
-import MyMenu from "../MyMenu";
+import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen} from 'react-icons/md';
+import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 import { ContactDict } from "../../Pages/Home/Main";
 import { myContext } from "../../lib/Context";
 import { Message } from "../../Entity/User/Contact_model";
+import Messenger from "../../Pages/Home/Messenger";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
@@ -52,8 +53,25 @@ const Nav: React.FC<Props> = (props) => {
     return new URLSearchParams(window.location.search).get(key)??""
   }
 
+  const menuCloseRoom = () =>{
+    const active = document.querySelector("a.nav-link.active")
+    if (active){
+      const href = active.getAttribute("href");
+      if (href && href.includes("message?")){
+        const url = new URL(href!, window.location.href);
+        const params = new URLSearchParams(url.search);
+        const uname = params.get("usr");
+        closingRoom(uname!)
+      }
+    }
+  }
+
   const closeRoom = (event: React.MouseEvent<HTMLButtonElement>) =>{
     let uname = event.currentTarget.value
+    closingRoom(uname)
+  }
+
+  const closingRoom = (uname: string) =>{
     if (props.target && props.target[uname]){
       if (ctx.WS) {
         let msg = JSON.stringify({
@@ -72,6 +90,27 @@ const Nav: React.FC<Props> = (props) => {
         navigate(process.env.PUBLIC_URL+'/');
       }
     }
+  }
+
+  const links: Array<MenuItem> = [
+    { 
+      key: "logout",
+      label: "Sign Out",
+      onClick:props.logout,
+      title: "Sign Out from app",
+      isLink: false,
+      icon:<MdOutlinePowerSettingsNew size={24}/>,
+    }
+  ]
+  if (props.children && React.isValidElement(props.children) && props.children.type === Messenger){
+    links.push({
+      key: "closeroom",
+      label: "Close Room",
+      onClick:menuCloseRoom,
+      title: "Close room to save memory",
+      isLink: false,
+      icon:<MdKeyboardTab size={24}/>,
+    })
   }
 
   const userElements = [];
@@ -94,7 +133,7 @@ const Nav: React.FC<Props> = (props) => {
           </i>
           <span className="nav-link-name">{user.name}</span>
         </Link>
-        {show && <span className={`absolute flex flex-row right-0 ${show?"":"md:hidden"}`}>
+        {show && <span className={`absolute flex-row right-0 hidden ${show?"md:flex":""}`}>
           {user.datas.wsStatus === "online" && <span className="text-green-400 rounded-full h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdLens size={10}/></span>}
           <button onClick={closeRoom} value={user.username} className="text-black hover:text-red-500 hover:cursor-pointer rounded-full h-8 w-8 flex justify-center items-center bg-esecondary-color bg-opacity-80"><MdClose size={20}/></button>
         </span>}
@@ -107,7 +146,7 @@ const Nav: React.FC<Props> = (props) => {
     <main className={show ? 'space-toggle' : ''}>
       <header className={`header ${show ? 'space-toggle' : ''}`}>
         <div className="flex gap-4 max-h-full" >
-          <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdClose /> : <MdMenu />}</div>
+          <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdMenuOpen /> : <MdMenu />}</div>
           <div>
             <div className='flex flex-row items-center'>
               {props.subtitle && <i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-2 md:hidden`}><MdLens size={8}/></i>}
@@ -119,7 +158,7 @@ const Nav: React.FC<Props> = (props) => {
           </div>
         </div>
         <div className="absolute right-0 h-8 md:h-auto bg-eprimary-color flex items-center justify-center bg-opacity-80">
-          <MyMenu logout={props.logout}/>
+          <MyMenu links={links}/>
         </div>
       </header>
       <aside className={`sidebar ${show ? 'show' : ''}`}>
