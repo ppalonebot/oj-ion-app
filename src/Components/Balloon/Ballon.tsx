@@ -22,27 +22,35 @@ const Balloon : React.FC<Props> = (props) => {
     <div className='text-blue-500 absolute bottom-0 right-[-1rem]'><MdOutlineCheck size={14}/></div>
     <div className='text-blue-700 absolute bottom-0 right-[-1.3rem]'><MdOutlineCheck size={14}/></div>
     </> : <></>
+
   
+  const localTime: React.ReactNode = <div className='text-sm text-gray-600 flex flex-col justify-center'>{props.time}</div>
+
   if (typeof props.children === "string" && props.children && props.children.includes('\n')) {
     const lines = (props.children! as string).split("\n");
     return (<>
-      <div className={props.isLeft ? "bln blft": "bln brgt"}>{lines.map((line, index) => (
+      {!props.isLeft && localTime}
+      <div className={`break-all ${props.isLeft ? "bln blft": "bln brgt"}`}>{lines.map((line, index) => (
           <React.Fragment key={index}>
             {line}
             <br />
           </React.Fragment>
           
         ))}
-        {status}
-        </div> 
+        {!props.isLeft && status}
+      </div> 
+      {props.isLeft && localTime}
     </>);
   }
 
-  return (
-    <div className={props.isLeft ? "bln blft": "bln brgt"}>
+  return (<>
+    {!props.isLeft && localTime}
+    <div className={`break-all ${props.isLeft ? "bln blft": "bln brgt"}`}>
       {props.children}
-      {status}
+      {!props.isLeft && status}
     </div> 
+    {props.isLeft && localTime}
+  </>
   );
 };
 

@@ -154,6 +154,9 @@ const Main: React.FC<Props> = (props) => {
       // }
       console.log(msg)
       switch (msg.action) {
+        case "read":
+          handleHasBeenRead(msg)
+          break;
         case "delv":
           handleDelivered(msg)
           break;
@@ -177,6 +180,35 @@ const Main: React.FC<Props> = (props) => {
       }
     }
   }
+
+  const handleHasBeenRead = (msg:any) => {
+    if (contact){
+      let m = msg as Message
+      for (const key in contact) {
+        if (contact.hasOwnProperty(key)) {
+          if (contact[key].datas.room.id === m.target!.id){
+            contact[key].datas.updated = new Date()
+
+            for(let i = contact[key].datas.messages.length -1; i>= 0; i--){
+              if (contact[key].datas.messages[i].id 
+                && contact[key].datas.messages[i].id.length > 0 
+                && contact[key].datas.messages[i].id === m.message
+              ){
+                contact[key].datas.messages[i].id = m.message
+                contact[key].datas.messages[i].status = "read"
+              }
+            }
+
+            if (getParam('usr') === key && window.location.pathname === '/message'){
+              setUpdated(contact[key].datas.updated)
+            }
+            break
+          }
+        }
+      }
+    }
+  }
+
   const handleDelivered = (msg:any) => {
     if (contact){
       let m = msg as Messages

@@ -9,13 +9,13 @@
 .bln.brgt{
   background: #107e42;
   border-radius: 12px 0 12px 12px;
-  
+  margin-left: 5px;
 }
 
 .bln.blft{
   background: #c0072f;
   border-radius: 0 12px 12px 12px;
-  
+  margin-right: 5px;
 }
 
 

@@ -3,7 +3,7 @@ import { User } from '../../Entity/User/User_model';
 import { myContext } from '../../lib/Context';
 import { ContactDict } from './Main';
 import TextAreaForm from '../../Components/TextAreaForm/TextAreaForm';
-import { MdSend } from 'react-icons/md';
+import { MdMarkChatUnread, MdMessage, MdSend } from 'react-icons/md';
 import { Message, TargetUser } from '../../Entity/User/Contact_model';
 import Balloon from '../../Components/Balloon/Ballon';
 import { messageLimit } from '../../global';
@@ -72,12 +72,13 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           }
           target[owner].datas.topMsgTimeId = ""
         } else {
-        msgContainerRef.current.scrollTop = target[owner].datas.scroll >= 100? 
+        msgContainerRef.current.scrollTop = target[owner].datas.scroll >= 96? 
           msgContainerRef.current.scrollHeight : ((msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100) >= 90 ?  
-            msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+20)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
+            msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
         }
         target[owner].datas.height = msgContainerRef.current.scrollHeight
-      }else{
+        handleScroll()
+      } else {
         msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
       }
     }
@@ -171,6 +172,66 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   }
 
+  let scrolToUnread = ""
+
+  const scrollToNewMsg = () =>{
+    
+    if (msgContainerRef.current) {
+      const element = msgContainerRef.current.querySelector(`[data-id="${scrolToUnread}"]`) as HTMLElement
+      if (element){
+        msgContainerRef.current.scrollTo({
+          top: element.offsetTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+    
+  }
+
+  const msgElements = []
+  if (target[owner]){
+    let myDates:Array<string> = []
+    for (let i=0;i<target[owner].datas.messages.length; i++) {
+      const message = target[owner].datas.messages[i]
+      const date = new Date(message.time);
+      const year = date.getFullYear().toString();
+      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add 1 to get the month number from 1 to 12
+      const day = date.getDate().toString().padStart(2, '0');
+      const offset = date.getTimezoneOffset();
+      const offsetHours = Math.abs(Math.floor(offset / 60));
+      const offsetMinutes = Math.abs(offset % 60);
+      const localHours = date.getHours() + offsetHours;
+      const localMinutes = date.getMinutes() + offsetMinutes;
+      const formattedHours = localHours.toString().padStart(2, '0');
+      const formattedMinutes = localMinutes.toString().padStart(2, '0');
+      const localTimeString = `${formattedHours}:${formattedMinutes}`;
+      const formattedDate = `${year}/${month}/${day}`;
+      if (!myDates.includes(formattedDate)){
+        myDates.push(formattedDate)
+        msgElements.push(<div className='text-gray-400 text-small text-center h-10 pt-2'><span className='rounded-full py-2 px-4 bg-esecondary-color'>{formattedDate}</span></div>)
+      }
+      msgElements.push(
+        <div key={message.time} ref={(el) => {
+          if (el) {
+            divsRef.current[target[owner].datas.messages.indexOf(message)] = el;
+          }
+        }}
+        data-id={message.time} id={"id"+message.id} data-status={message.status} className={message.sender!.username === props.user.username ? 'flex flex-row justify-end p-2':'flex flex-row justify-start p-2'}>
+          <Balloon 
+            msgid={message.id}
+            time={localTimeString}
+            status={message.status}
+            // visible={visibleMsgs.includes(message.time)}
+            isLeft={message.sender!.username !== props.user.username}>
+              {message.message}
+          </Balloon>
+        </div> 
+      )
+      if (scrolToUnread === "" && message.status !== "read" && message.sender!.username !== props.user.username && target[owner].datas.scroll < 98) {
+        scrolToUnread = message.time
+      }
+    }
+  }
   return (
     <div className="h-full max-h-full flex flex-col justify-between">
       <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
@@ -178,26 +239,11 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           <div className='h-10 w-full'>
           {!btnLoad && target[owner] && target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
           </div>
-          {target[owner] && target[owner].datas.messages.map(message => ( 
-            <div key={message.time} ref={(el) => {
-              if (el) {
-                divsRef.current[target[owner].datas.messages.indexOf(message)] = el;
-              }
-            }}
-            data-id={message.time} id={"id"+message.id} data-status={message.status} className={message.sender!.username === props.user.username ? 'flex flex-row justify-end p-2':'flex flex-row justify-start p-2'}>
-              <Balloon 
-                msgid={message.id}
-                time={message.time}
-                status={message.status}
-                // visible={visibleMsgs.includes(message.time)}
-                isLeft={message.sender!.username !== props.user.username}>
-                  {message.message}
-              </Balloon>
-            </div> 
-          ))}
+          {msgElements}
         </div>
       </div>
       <div className='w-full md:p-3 p-2 bg-esecondary-color'>
+        {scrolToUnread !== "" && <div className='relative'><button onClick={scrollToNewMsg} className='absolute top-[-4.5rem] p-3 bg-blue-500 hover:bg-blue-700 rounded-full'><MdMarkChatUnread size={28} /></button></div>}
         <form onSubmit={handleSubmit} className='flex flex-row gap-2 items-center'>
           <TextAreaForm className='flex-1' 
             name='message' 
