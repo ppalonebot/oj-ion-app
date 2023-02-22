@@ -14,6 +14,7 @@ import FriendReqs from "../../Components/FriendReqs";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
 import { ContactData, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
+import Chats from "../../Components/Chats";
 
 type Props = {
   user:User
@@ -325,6 +326,9 @@ const Main: React.FC<Props> = (props) => {
         }
       }
       if (found) setContact(contact)
+      else {
+        console.log("todo: notif to chats page and chats nav")
+      }
     }
   }
 
@@ -350,36 +354,28 @@ const Main: React.FC<Props> = (props) => {
   }
 
   const handleRoomJoined = (msg:any) => {
-    if (!contact[msg.sender.username]){
-      contact[msg.sender.username] = msg.sender as TargetUser
-      let d =  {
-        updated:new Date(), 
-        wsStatus: msg.message, 
-        messages:[], room:msg.target as Room, 
-        scroll:0, 
-        height:0, 
-        page:0, 
-        newMsgCount: 0,
-        firstLoad:true, 
-        isActive: false
-      } as ContactData
-      contact[msg.sender.username].datas = d
-
-      let m = JSON.stringify({
-        action: 'get-msg',
-        message: "1,"+messageLimit,
-        target: {
-          id: contact[msg.sender.username].datas.room.id,
-          name: contact[msg.sender.username].datas.room.name
-        }
-      } as Message)
-
-      socket!.send(m)
-    }
-    else{
+    if (contact[msg.sender.username]){
+      if (contact[msg.sender.username].datas.firstLoad){
+        let sender = msg.sender as TargetUser
+        contact[msg.sender.username].avatar = sender.avatar
+        contact[msg.sender.username].contact = sender.contact
+        contact[msg.sender.username].name = sender.name
+        contact[msg.sender.username].username = sender.username
+        let m = JSON.stringify({
+          action: 'get-msg',
+          message: "1,"+messageLimit,
+          target: {
+            id: msg.target.id,
+            name: msg.target.name
+          }
+        } as Message)
+  
+        socket!.send(m)
+      }
       contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus
       contact[msg.sender.username].datas.updated = new Date()
       contact[msg.sender.username].datas.room = msg.target as Room
+      
     }
     setContact(contact)
     if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
@@ -464,37 +460,20 @@ const Main: React.FC<Props> = (props) => {
     case 'searchuser':
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle} target={contact}>
+          <FriendReqs user={userself} />
           <SearchUser key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
         </Nav>)
     default:
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle} target={contact}>
-          <div className='p-4 flex flex-col justify-start items-center'>
+          
           {
             isLoading? <p className='text-center mt-10'>Loading...</p> :
             error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
             <>
-            
-            <p className='text-center mt-10'>Welcome {userself.name}</p>
-            <div className="mt-4 w-full flex justify-center gap-1">
-              <Link 
-                to={process.env.PUBLIC_URL+"/profile"} 
-                className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                My Profile
-              </Link>
-              <button
-                type="button"
-                className="text-center bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                onClick={logout}
-              >
-                Logout
-              </button>
-            </div>
-
+            <Chats key={window.location.search} user={userself} setNavTitle={setNavTitle} />
             </>
           }
-          </div>
-          <FriendReqs user={userself} setNavTitle={setNavTitle} />
         </Nav>
       );
   }

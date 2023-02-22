@@ -7,6 +7,8 @@ import { MdMarkChatUnread, MdMessage, MdSend } from 'react-icons/md';
 import { Message, TargetUser } from '../../Entity/User/Contact_model';
 import Balloon from '../../Components/Balloon/Ballon';
 import { messageLimit } from '../../global';
+import { ContactData } from '../../Entity/User/Contact_model';
+import { FormatDate } from '../../lib/Utils';
 
 export type MessengerProps = {
   user:User;
@@ -91,7 +93,24 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
     if (props.setNavTitle) props.setNavTitle( target[owner] ? target[owner].name : "@"+owner)
     if (props.setNavSubTitle && target[owner]) props.setNavSubTitle( target[owner].datas.wsStatus)
-    if (ctx.WS !== null && owner && !target[owner]) ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}));
+    if (ctx.WS !== null && owner && !target[owner]) {
+      //init data:
+      let d =  {
+        updated: new Date(),
+        wsStatus: "",
+        messages: [],
+        room: {},
+        scroll: 0,
+        height: 0,
+        page: 0,
+        newMsgCount: 0,
+        firstLoad: true,
+        isActive: false
+      } as unknown as ContactData
+      target[owner] = {username:owner, avatar:"",contact:{},datas:d,name:""} as TargetUser
+
+      ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}));
+    }
 
     return
   },[])
@@ -175,7 +194,6 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   let scrolToUnread = ""
 
   const scrollToNewMsg = () =>{
-    
     if (msgContainerRef.current) {
       const element = msgContainerRef.current.querySelector(`[data-id="${scrolToUnread}"]`) as HTMLElement
       if (element){
@@ -185,7 +203,6 @@ const Messenger: React.FC<MessengerProps> = (props) => {
         });
       }
     }
-    
   }
 
   const msgElements = []
@@ -193,22 +210,12 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     let myDates:Array<string> = []
     for (let i=0;i<target[owner].datas.messages.length; i++) {
       const message = target[owner].datas.messages[i]
-      const date = new Date(message.time);
-      const year = date.getFullYear().toString();
-      const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Add 1 to get the month number from 1 to 12
-      const day = date.getDate().toString().padStart(2, '0');
-      const offset = date.getTimezoneOffset();
-      const offsetHours = Math.abs(Math.floor(offset / 60));
-      const offsetMinutes = Math.abs(offset % 60);
-      const localHours = date.getHours() + offsetHours;
-      const localMinutes = date.getMinutes() + offsetMinutes;
-      const formattedHours = localHours.toString().padStart(2, '0');
-      const formattedMinutes = localMinutes.toString().padStart(2, '0');
-      const localTimeString = `${formattedHours}:${formattedMinutes}`;
-      const formattedDate = `${year}/${month}/${day}`;
+      const dt = FormatDate(message.time)
+      const localTimeString = dt.time
+      const formattedDate = dt.date
       if (!myDates.includes(formattedDate)){
         myDates.push(formattedDate)
-        msgElements.push(<div className='text-gray-400 text-small text-center h-10 pt-2'><span className='rounded-full py-2 px-4 bg-esecondary-color'>{formattedDate}</span></div>)
+        msgElements.push(<div key={formattedDate} className='text-gray-400 text-small text-center h-10 pt-2'><span className='rounded-full py-2 px-4 bg-esecondary-color'>{formattedDate}</span></div>)
       }
       msgElements.push(
         <div key={message.time} ref={(el) => {

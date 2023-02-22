@@ -3,7 +3,7 @@ import { User } from "../../Entity/User/User_model";
 import Avatar from "../Avatar";
 import { Link, useNavigate } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdAccessTimeFilled, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen} from 'react-icons/md';
+import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen, MdQuestionAnswer} from 'react-icons/md';
 import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 import { ContactDict } from "../../Pages/Home/Main";
@@ -37,13 +37,13 @@ const Nav: React.FC<Props> = (props) => {
   const pages : Array<MainLink> = [
     {
       key:0,
-      text:'Home',
+      text:'Chats',
       link:process.env.PUBLIC_URL+"/",
-      ico:<MdAccessTimeFilled/>
+      ico:<MdQuestionAnswer/>
     },
     {
       key:1,
-      text:'Contact List',
+      text:'Contacts',
       link:process.env.PUBLIC_URL+"/searchuser",
       ico:<MdPeopleAlt/>
     },

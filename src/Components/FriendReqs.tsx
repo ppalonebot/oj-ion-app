@@ -118,7 +118,7 @@ const FriendReqs: FC<Props> = (props) => {
   }
 
   return (
-    <div className='flex flex-col rounded-md bg-esecondary-color m-2 p-4'>
+    <div className='flex flex-col rounded-md sm:bg-esecondary-color m-2 p-4'>
       {
         (userReqs.length > 0) &&<p className='text-center mb-4'>You got friend request!</p>
       }
