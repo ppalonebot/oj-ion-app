@@ -8,7 +8,6 @@ import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 import { ContactDict } from "../../Pages/Home/Main";
 import { myContext } from "../../lib/Context";
-import { Message } from "../../Entity/User/Contact_model";
 import Messenger from "../../Pages/Home/Messenger";
 
 type Props = React.PropsWithChildren<{ 
@@ -73,22 +72,22 @@ const Nav: React.FC<Props> = (props) => {
 
   const closingRoom = (uname: string) =>{
     if (props.target && props.target[uname]){
-      if (ctx.WS) {
-        let msg = JSON.stringify({
-          action: 'leave-room',
-          message: props.target[uname].datas.room.id,
-          target: {
-            id: props.target[uname].datas.room.id,
-            name: props.target[uname].datas.room.name
-          },
-          status:"sent",
-          time:(new Date()).toISOString()
-        } as Message)
+      // if (ctx.WS) {
+      //   let msg = JSON.stringify({
+      //     action: 'leave-room',
+      //     message: props.target[uname].datas.room.id,
+      //     target: {
+      //       id: props.target[uname].datas.room.id,
+      //       name: props.target[uname].datas.room.name
+      //     },
+      //     status:"sent",
+      //     time:(new Date()).toISOString()
+      //   } as Message)
 
-        ctx.WS.send(msg);
-        delete props.target[uname]
-        navigate(process.env.PUBLIC_URL+'/');
-      }
+      //   ctx.WS.send(msg);
+      // }
+      delete props.target[uname]
+      navigate(process.env.PUBLIC_URL+'/');
     }
   }
 

@@ -3,7 +3,6 @@ import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
 import { API_URL, API_WSURL, messageLimit } from "../../global";
-import { Link } from "react-router-dom";
 import Profile from "./Profile";
 import Nav from "../../Components/Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
@@ -13,7 +12,7 @@ import ImageDetail from "./ImageDetail";
 import FriendReqs from "../../Components/FriendReqs";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
-import { ContactData, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
+import { Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
 import Chats from "../../Components/Chats";
 
 type Props = {
@@ -30,7 +29,6 @@ const maxReconnectDelay = 16000
 
 const Main: React.FC<Props> = (props) => {
   const ctx = React.useContext(myContext);
-  
   const [navTitle,setNavTitle] = React.useState<string>("Home")
   const [navSubTitle,setNavSubTitle] = React.useState<string>("")
   const [userself, setUserself] = React.useState<User>(props.user)
@@ -40,6 +38,8 @@ const Main: React.FC<Props> = (props) => {
   const [contact, setContact] = React.useState<ContactDict>({})
   const [isWsConnected, setIsWsConnected] = React.useState(false)
   const [updated, setUpdated] = React.useState(new Date())
+  const [updatedChats, setUpdatedChats] = React.useState(new Date())
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   let socket : WebSocket | null = null
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
@@ -182,7 +182,30 @@ const Main: React.FC<Props> = (props) => {
     }
   }
 
+  const updateChatPage = () => {
+    if (timeoutRef.current !== null) {
+      // clearTimeout(timeoutRef.current);
+      console.log('Timeout skipped!');
+      return
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      if (window.location.pathname === '/'){
+        const p = isNaN(parseInt(getParam("p") ?? "1")) ? 1 : parseInt(getParam("p") ?? "1");
+        console.log(p);
+        if (p === 1){
+          const currentDate = new Date();
+          const fiveMinutesEarlier = new Date(currentDate.getTime() - (6 * 60 * 1000));
+          ctx.ChatsLastUpdate[p] = fiveMinutesEarlier
+          setUpdatedChats(currentDate)
+        }
+      }
+      timeoutRef.current = null
+    }, 5000);
+  }
+
   const handleHasBeenRead = (msg:any) => {
+    updateChatPage()
     if (contact){
       let m = msg as Message
       for (const key in contact) {
@@ -211,6 +234,7 @@ const Main: React.FC<Props> = (props) => {
   }
 
   const handleDelivered = (msg:any) => {
+    updateChatPage()
     if (contact){
       let m = msg as Messages
       for (const key in contact) {
@@ -234,6 +258,8 @@ const Main: React.FC<Props> = (props) => {
         }
       }
     }
+
+
   }
 
   const handleGetMessage = (msg:any) => {
@@ -471,7 +497,7 @@ const Main: React.FC<Props> = (props) => {
             isLoading? <p className='text-center mt-10'>Loading...</p> :
             error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
             <>
-            <Chats key={window.location.search} user={userself} setNavTitle={setNavTitle} />
+            <Chats key={window.location.search+updatedChats} user={userself} setNavTitle={setNavTitle} />
             </>
           }
         </Nav>

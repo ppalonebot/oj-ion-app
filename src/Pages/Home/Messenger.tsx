@@ -60,6 +60,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   
   React.useLayoutEffect(() => {
     if (hasMountedRef.current) return
+    setTimeout(() => { // add timeOut 
+      handleScroll()  
+    }, 200);
     if (msgContainerRef.current) {
       if (target[owner]){
         if (target[owner].datas.firstLoad){
@@ -79,12 +82,10 @@ const Messenger: React.FC<MessengerProps> = (props) => {
             msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
         }
         target[owner].datas.height = msgContainerRef.current.scrollHeight
-        handleScroll()
       } else {
         msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
       }
-    }
-
+    }    
   }, []);
 
   React.useEffect(()=>{

@@ -6,9 +6,10 @@ import { JsonRPC2, JsonRPCresult } from '../lib/MyJsonRPC2';
 import { useQuery } from 'react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import Avatar from './Avatar';
-import { Message } from '../Entity/User/Contact_model';
+import { LastMessages } from '../Entity/User/Contact_model';
 import CheckedStatus from './CheckedStatus';
 import { FormatDate } from '../lib/Utils';
+import { myContext } from '../lib/Context';
 
 
 interface Props {
@@ -16,32 +17,25 @@ interface Props {
   setNavTitle?: (t:string) => void
 }
 
-type LastMessages = {
-  room_id: string;
-  last_msg: Message;
-  unread_c: number;
-  private: true;
-  sender: string;
-  icon_image:string;
-  icon_name:string;
-  icon_at:string;
-}
-
 const Chats: FC<Props> = (props) => {
+  const ctx = React.useContext(myContext);
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);
-  const [userReqs, setUserReqs] = React.useState<LastMessages[]>([]);
+  const initPage = parseInt(searchParams.get('p') ?? "1") ?? 1
   const [paging, setPaging] = React.useState<Paging>({
-    next:false,
-    prev:false,
-    page:parseInt(searchParams.get('p') ?? "1") ?? 1,
+    next:true && ctx.Chats && ctx.Chats[Object.keys(ctx.Chats).length - 1] && ctx.Chats[Object.keys(ctx.Chats).length - 1].length === UserCountResult,
+    prev:initPage > 1,
+    page:initPage,
     limit:UserCountResult});
-  const [status, setStatus] = React.useState('idle');
+  const [statuss, setStatus] = React.useState('idle');
+  const [userReqs, setUserReqs] = React.useState<LastMessages[]>(ctx.Chats[initPage]??[]);
   const [rpc, setRpc] = React.useState( new JsonRPC2("GetLastMessages", {
     uid: props.user.uid, 
     page : paging.page+"", 
     limit: ""+paging.limit} ));
-  const { refetch } = useQuery(
+  const deltaWaitSec = 5*60
+  const deltaSec = ctx.ChatsLastUpdate[initPage] ? (new Date().getTime() - ctx.ChatsLastUpdate[initPage].getTime()) / 1000 : deltaWaitSec;
+  const { status, refetch,  } = useQuery(
     "LastMessages",
     () => fetch(API_URL+'/rm/rpc',
     {
@@ -55,14 +49,16 @@ const Chats: FC<Props> = (props) => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 5*60 * 1000,
+      refetchInterval: 1*60 * 1000,
       cacheTime: 5 * 60 * 1000,
+      enabled: deltaSec >= deltaWaitSec,
       onError(err) {
         setStatus("error")
         console.log("error")
         console.log(err)
       },
       onSuccess(data) {
+        console.log("chats on data success")
         if (data){
           if (data.result){
             setStatus("success")
@@ -78,11 +74,19 @@ const Chats: FC<Props> = (props) => {
                 }
               }
             }
+            // if (userReqs.length === 0){
+              
+            // } else {
+
+            // }
             setUserReqs(list.rooms)
             setPaging({...paging,
               next: list.rooms.length === paging.limit,
               prev: paging.page > 1,
             });
+
+            ctx.Chats[paging.page] = list.rooms
+            ctx.ChatsLastUpdate[paging.page] = new Date()
           }
           else{
             setStatus("error")
@@ -95,11 +99,19 @@ const Chats: FC<Props> = (props) => {
 
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
-
+    console.log("chats effect")
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
     if (props.setNavTitle) props.setNavTitle("Chats")
+    if (status === "success" || status === "error"){
+      // if (deltaSec >= deltaWaitSec){
+        
+      // }
+      console.log("refetch")
+      setStatus("loading")
+      refetch()
+    }
 
     return
   },[])
@@ -179,15 +191,15 @@ const Chats: FC<Props> = (props) => {
           (userReqs.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
         }
         {
-          (userReqs.length === 0) &&<p>{status==='loading' ? "Loading..." : "No conversation yet."}</p>
+          (userReqs.length === 0) &&<p>{statuss==='loading' ? "Loading..." : "No conversation yet."}</p>
         }
       </div>
     {
-      (userReqs.length > 0 || paging.page > 1 || status==='loading') && 
+      (userReqs.length > 0 || paging.page > 1 || statuss==='loading') && 
       <Pagination {...paging} 
         nextBtn={nextSearching} 
         prevBtn={prevSearching} 
-        loading={status==='loading'}
+        loading={statuss==='loading'}
       />
     }
     </div>

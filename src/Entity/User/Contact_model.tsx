@@ -52,3 +52,14 @@ export type Messages = {
   status: string;
   time: string;
 }
+
+export type LastMessages = {
+  room_id: string;
+  last_msg: Message;
+  unread_c: number;
+  private: true;
+  sender: string;
+  icon_image:string;
+  icon_name:string;
+  icon_at:string;
+}
