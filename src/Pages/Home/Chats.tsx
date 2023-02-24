@@ -1,15 +1,17 @@
 import React, {FC} from 'react';
-import { User } from '../Entity/User/User_model';
-import Pagination, { Paging } from './Pagination';
-import { API_URL, UserCountResult } from '../global';
-import { JsonRPC2, JsonRPCresult } from '../lib/MyJsonRPC2';
+import { User } from '../../Entity/User/User_model';
+import Pagination, { Paging } from '../../Components/Pagination';
+import { API_URL, UserCountResult } from '../../global';
+import { JsonRPC2, JsonRPCresult } from '../../lib/MyJsonRPC2';
 import { useQuery } from 'react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import Avatar from './Avatar';
-import { LastMessages } from '../Entity/User/Contact_model';
-import CheckedStatus from './CheckedStatus';
-import { FormatDate } from '../lib/Utils';
-import { myContext } from '../lib/Context';
+import Avatar from '../../Components/Avatar';
+import { LastMessages } from '../../Entity/User/Contact_model';
+import CheckedStatus from '../../Components/CheckedStatus';
+import { FormatDate } from '../../lib/Utils';
+import { myContext } from '../../lib/Context';
+import LoadingBar from '../../Components/LoadingBar/LoadingBar';
+import FriendReqsChecker from '../../Components/FriendReqsChecker';
 
 
 interface Props {
@@ -21,14 +23,18 @@ const Chats: FC<Props> = (props) => {
   const ctx = React.useContext(myContext);
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);
-  const initPage = parseInt(searchParams.get('p') ?? "1") ?? 1
+  const initPage = isNaN(parseInt(searchParams.get('p') ?? "1")) ? 1 : parseInt(searchParams.get('p') ?? "1");
+  
+  const hasNextPage = ctx.Chats[initPage + 1]?.length > 0;
+  const hasEnoughResults = ctx.Chats[initPage]?.length >= UserCountResult;
+  const flag = (!hasNextPage && hasEnoughResults) || hasNextPage || hasEnoughResults;
   const [paging, setPaging] = React.useState<Paging>({
-    next:true && ctx.Chats && ctx.Chats[Object.keys(ctx.Chats).length - 1] && ctx.Chats[Object.keys(ctx.Chats).length - 1].length === UserCountResult,
+    next:flag,
     prev:initPage > 1,
     page:initPage,
     limit:UserCountResult});
   const [statuss, setStatus] = React.useState('idle');
-  const [userReqs, setUserReqs] = React.useState<LastMessages[]>(ctx.Chats[initPage]??[]);
+  const [userChats, setUserChats] = React.useState<LastMessages[]>(ctx.Chats[initPage]??[]);
   const [rpc, setRpc] = React.useState( new JsonRPC2("GetLastMessages", {
     uid: props.user.uid, 
     page : paging.page+"", 
@@ -58,7 +64,6 @@ const Chats: FC<Props> = (props) => {
         console.log(err)
       },
       onSuccess(data) {
-        console.log("chats on data success")
         if (data){
           if (data.result){
             setStatus("success")
@@ -74,12 +79,8 @@ const Chats: FC<Props> = (props) => {
                 }
               }
             }
-            // if (userReqs.length === 0){
-              
-            // } else {
-
-            // }
-            setUserReqs(list.rooms)
+            
+            setUserChats(list.rooms)
             setPaging({...paging,
               next: list.rooms.length === paging.limit,
               prev: paging.page > 1,
@@ -99,16 +100,11 @@ const Chats: FC<Props> = (props) => {
 
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
-    console.log("chats effect")
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
     if (props.setNavTitle) props.setNavTitle("Chats")
     if (status === "success" || status === "error"){
-      // if (deltaSec >= deltaWaitSec){
-        
-      // }
-      console.log("refetch")
       setStatus("loading")
       refetch()
     }
@@ -139,8 +135,8 @@ const Chats: FC<Props> = (props) => {
   }
 
   const elements = []
-  if (userReqs) {
-    let arr = userReqs.sort((a, b) => (a.last_msg.time < b.last_msg.time) ? 1 : -1);
+  if (userChats) {
+    let arr = userChats.sort((a, b) => (a.last_msg.time < b.last_msg.time) ? 1 : -1);
     for (let index = 0; index < arr.length ; index++) {
       const o = arr[index];
       if (!o) continue;
@@ -181,28 +177,31 @@ const Chats: FC<Props> = (props) => {
   }
 
   return (
+    <>
+    <LoadingBar loading={status==='loading'} />
+    <FriendReqsChecker uid='1230' />
     <div className='flex flex-col rounded-md sm:bg-esecondary-color m-2 p-4'>
       {
-        (userReqs.length > 0) &&<p className='text-center mb-4'>Last Messages</p>
+        (userChats.length > 0) &&<p className='text-center mb-4'>Last Messages</p>
       }
       <div className='flex flex-wrap gap-4 justify-center'>
         {elements}
         {
-          (userReqs.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
+          (userChats.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
         }
         {
-          (userReqs.length === 0) &&<p>{statuss==='loading' ? "Loading..." : "No conversation yet."}</p>
+          (userChats.length === 0) &&<p>{statuss==='loading' || (status==='loading') ? "Loading..." : "No result!"}</p>
         }
       </div>
     {
-      (userReqs.length > 0 || paging.page > 1 || statuss==='loading') && 
+      (userChats.length > 0 || paging.page > 1 || statuss==='loading') && 
       <Pagination {...paging} 
         nextBtn={nextSearching} 
         prevBtn={prevSearching} 
         loading={statuss==='loading'}
       />
     }
-    </div>
+    </div></>
   );
 };
 

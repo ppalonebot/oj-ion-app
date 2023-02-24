@@ -1,3 +1,10 @@
+export type UserResult = {
+  name:string;
+  username:string;
+  avatar:string;
+  contact:Contact|null;
+}
+
 export type Contact = {
   owner: string;
   to: string;
@@ -26,6 +33,7 @@ export type ContactData = {
   topMsgTimeId?:string;
   firstLoad?:boolean;
   isActive:boolean;
+  isInputFocus?:boolean;
 }
 
 export type Room = {

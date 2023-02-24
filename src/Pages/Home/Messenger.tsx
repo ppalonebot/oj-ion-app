@@ -27,6 +27,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const [btnLoad,setBtnLoad] = React.useState(false)
   const divsRef = React.useRef<HTMLDivElement[]>([]);
   const [visibleMsgs, setVisibleMsgs] = React.useState<string[]>([]);
+  const inputRef = React.useRef<HTMLTextAreaElement| null>(null);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement> | null) => {
     if (event) event.preventDefault();
@@ -60,14 +61,22 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   
   React.useLayoutEffect(() => {
     if (hasMountedRef.current) return
+
+    console.log(inputRef.current)
+    if (inputRef.current && target[owner] && target[owner].datas.isInputFocus){
+      inputRef.current.focus();
+    }
+
     setTimeout(() => { // add timeOut 
       handleScroll()  
     }, 200);
+    
     if (msgContainerRef.current) {
       if (target[owner]){
         if (target[owner].datas.firstLoad){
           msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
           target[owner].datas.firstLoad = false
+          handleScroll()
           return
         }
         if (target[owner].datas.topMsgTimeId && target[owner].datas.topMsgTimeId !== ""){
@@ -85,7 +94,8 @@ const Messenger: React.FC<MessengerProps> = (props) => {
       } else {
         msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
       }
-    }    
+    } 
+    handleScroll()   
   }, []);
 
   React.useEffect(()=>{
@@ -115,6 +125,12 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
     return
   },[])
+
+  const handleFocus = (isFocus:boolean) =>{
+    if (target[owner] && inputRef.current) {
+      target[owner].datas.isInputFocus = isFocus
+    }
+  }
 
   const handleScroll = () => {
     if (target[owner] && msgContainerRef.current) {
@@ -261,6 +277,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
             onChange={event => setNewMessage(event.target.value)}
             isNotResizeable={true}
             onKeyDown={handleKeyDown}
+            myref={inputRef}
+            onFocus={() => handleFocus(true)}
+            onBlur={() => handleFocus(false)}
           />
           <button type="submit" className='rounded-full w-14 hover:bg-blue-700 hover:bg-opacity-20 p-4 '><MdSend size={24} /></button>
         </form>

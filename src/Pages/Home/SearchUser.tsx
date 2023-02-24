@@ -13,33 +13,35 @@ import Pagination, { Paging } from '../../Components/Pagination';
 import LoadingBar from '../../Components/LoadingBar/LoadingBar';
 import { Link } from 'react-router-dom';
 import { STATUS } from '../../Entity/Enum';
-import { Contact } from '../../Entity/User/Contact_model';
+import { UserResult } from '../../Entity/User/Contact_model';
+import { myContext } from '../../lib/Context';
 
 type Props = {
   user:User;
   setNavTitle?: (t:string) => void
 }
 
-type UserResult = {
-  name:string;
-  username:string;
-  avatar:string;
-  contact:Contact|null;
-}
-
 const SearchUser: React.FC<Props> = (props) => {
+  const ctx = React.useContext(myContext);
   const navigate = useNavigate()
   const searchParams = new URLSearchParams(window.location.search);
   const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('k')??"");
   const [lastSearchTerm, setLastSearchTerm] = useState<string>("");
-  const [searchResult, setSearchResult] = useState<UserResult[]>([]);
+  const initPage = isNaN(parseInt(searchParams.get('p') ?? "1")) ? 1 : parseInt(searchParams.get('p') ?? "1");
+  
+  const hasNextPage = ctx.Friends[initPage + 1]?.length > 0;
+  const hasEnoughResults = ctx.Friends[initPage]?.length >= UserCountResult;
+  const flag = (!hasNextPage && hasEnoughResults) || hasNextPage || hasEnoughResults;
   const [paging, setPaging] = useState<Paging>({
-    next:false,
-    prev:false,
-    page:parseInt(searchParams.get('p') ?? "1") ?? 1,
+    next:flag,//((!ctx.Friends[initPage + 1] && ctx.Friends[initPage] && ctx.Friends[initPage].length >= UserCountResult) || (ctx.Friends[initPage + 1] && ctx.Friends[initPage + 1].length > 0)) || (ctx.Friends[initPage] && ctx.Friends[initPage].length >= UserCountResult),
+    prev:initPage > 1,
+    page:initPage,
     limit:UserCountResult})
   const [searchErr, setSearchErr] = useState('');
   const [status, setStatus] = useState('idle');
+  const [searchResult, setSearchResult] = useState<UserResult[]>(ctx.Friends[initPage] && searchTerm === "" ?ctx.Friends[initPage] : []);
+  const deltaWaitSec = 5*60
+  const deltaSec = ctx.FriendPageLastUpdate[initPage] ? (new Date().getTime() - ctx.FriendPageLastUpdate[initPage].getTime()) / 1000 : deltaWaitSec;
   const [dialogProps, setDialogProps] = useState({title: "title", isDialogOpen: false, children: <p>#empty</p>} as DialogProps);
   const toggleDialog = () =>{
     setDialogProps({...dialogProps,isDialogOpen: !dialogProps.isDialogOpen});
@@ -55,7 +57,7 @@ const SearchUser: React.FC<Props> = (props) => {
       }
     }).then(res => res.json()),
     {
-      onSuccess: (data,v ,ctx) => {
+      onSuccess: (data,v ,c) => {
         if (data.result){
           setStatus("success")
           const res: UserResult[] = data.result.map((ele: unknown)=>{
@@ -67,13 +69,19 @@ const SearchUser: React.FC<Props> = (props) => {
           let page = urlparams.get('p') ?? "1"
           let p = parseInt(page) ?? 1;
 
+          
           setPaging({...paging,
             next: res.length === paging.limit,
             prev: p > 1,
             page: p,
           });
-
           setSearchResult(res)
+          
+          if (searchTerm === ""){
+            console.log("friends on data")
+            ctx.Friends[p] = res
+            ctx.FriendPageLastUpdate[p] = new Date()
+          }
         }
         else{
           setStatus("error")
@@ -81,7 +89,7 @@ const SearchUser: React.FC<Props> = (props) => {
           //setDialogProps({...dialogProps,isDialogOpen: true, title:"Error "+data.error.code, children:<p>{data.error.message}</p>})
         }
       },
-      onError: (error, v, ctx) => {
+      onError: (error, v, c) => {
         // Do something after the mutation fails, such as showing an error message
         console.log(error)
         setStatus("error")
@@ -94,6 +102,7 @@ const SearchUser: React.FC<Props> = (props) => {
   //const status = mutationResult.status;
 
   const doSearching = (k:string, page: string) => {  
+    if (!(deltaSec >= deltaWaitSec || k !== "") ) return
     setStatus('loading')
     let rpc = new JsonRPC2("SearchUser", {uid: props.user.uid, keyword: k, page : page, limit: ""+paging.limit, status:k?"":STATUS.Accepted} )
     setLastSearchTerm(k)
@@ -136,29 +145,15 @@ const SearchUser: React.FC<Props> = (props) => {
     }
   }
 
-  // const handleSearchChange = () => {
-  //   // console.log(window.location.search)
-  //   // let urlparams = new URLSearchParams(window.location.search)
-  //   // let k = urlparams.get('k') ?? "";
-  //   // let page = urlparams.get('p') ?? "1"
-  //   // setSearchTerm(k)
-  //   // let p = parseInt(page) ?? 1;
-  //   // setPaging({...paging,page:p})
-
-  //   // doSearching(k, page)
-  // }
-
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
-    // window.addEventListener('popstate', handleSearchChange);
-
-    if (hasMountedRef.current) return //> window.removeEventListener('popstate', handleSearchChange)
+    if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
     if (props.setNavTitle) props.setNavTitle("Contacts")
     doSearching(searchTerm, paging.page+"")
 
-    return //() => window.removeEventListener('popstate', handleSearchChange)
+    return
   },[])
 
   return (

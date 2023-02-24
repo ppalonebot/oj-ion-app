@@ -1,14 +1,16 @@
 import React, {FC} from 'react';
-import { User } from '../Entity/User/User_model';
-import { Contact } from '../Entity/User/Contact_model';
-import Pagination, { Paging } from './Pagination';
-import { API_URL, UserCountResult } from '../global';
-import { STATUS } from '../Entity/Enum';
-import { JsonRPC2, JsonRPCresult } from '../lib/MyJsonRPC2';
+import { User } from '../../Entity/User/User_model';
+import { Contact } from '../../Entity/User/Contact_model';
+import Pagination, { Paging } from '../../Components/Pagination';
+import { API_URL, UserCountResult } from '../../global';
+import { STATUS } from '../../Entity/Enum';
+import { JsonRPC2, JsonRPCresult } from '../../lib/MyJsonRPC2';
 import { useQuery } from 'react-query';
-import { Link } from 'react-router-dom';
-import Avatar from './Avatar';
-import CttStatus from './CttStatus';
+import { Link, useNavigate } from 'react-router-dom';
+import Avatar from '../../Components/Avatar';
+import CttStatus from '../../Components/CttStatus';
+import { myContext } from '../../lib/Context';
+import LoadingBar from '../../Components/LoadingBar/LoadingBar';
 
 
 interface Props {
@@ -24,20 +26,30 @@ type UserResult = {
 }
 
 const FriendReqs: FC<Props> = (props) => {
-  const [userReqs, setUserReqs] = React.useState<UserResult[]>([])
-  const [paging, setPaging] = React.useState<Paging>({
-    next:false,
-    prev:false,
-    page:1,
-    limit:UserCountResult})
+  const ctx = React.useContext(myContext);
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const initPage = isNaN(parseInt(searchParams.get('p') ?? "1")) ? 1 : parseInt(searchParams.get('p') ?? "1");
 
+  const hasNextPage = ctx.FriendReqs[initPage + 1]?.length > 0;
+  const hasEnoughResults = ctx.FriendReqs[initPage]?.length >= UserCountResult;
+  const flag = (!hasNextPage && hasEnoughResults) || hasNextPage || hasEnoughResults;
+  const [paging, setPaging] = React.useState<Paging>({
+    next:flag,
+    prev:initPage > 1,
+    page:initPage,
+    limit:UserCountResult});
+  const [statuss, setStatus] = React.useState('idle');
+  const [userReqs, setUserReqs] = React.useState<UserResult[]>(ctx.FriendReqs[initPage]??[])
   const [rpc, setRpc] = React.useState( new JsonRPC2("SearchUser", {
     uid: props.user.uid, 
     keyword: "", 
     page : paging.page+"", 
     limit: ""+paging.limit, 
     status:STATUS.Pending} ) )
-  const { isLoading, error, refetch } = useQuery(
+  const deltaWaitSec = 5*60
+  const deltaSec = ctx.FriendReqsLastUpdate[initPage] ? (new Date().getTime() - ctx.FriendReqsLastUpdate[initPage].getTime()) / 1000 : deltaWaitSec;
+  const { status, refetch } = useQuery(
     "FriendRequest",
     () => fetch(API_URL+'/contacts/rpc',
     {
@@ -51,23 +63,30 @@ const FriendReqs: FC<Props> = (props) => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 5*60 * 1000,
+      refetchInterval: 1*60 * 1000,
       cacheTime: 5 * 60 * 1000,
+      enabled: deltaSec >= deltaWaitSec,
       onError(err) {
+        setStatus("error")
         console.log("error")
         console.log(err)
       },
       onSuccess(data) {
         if (data){
           if (data.result){
+            setStatus("success")
             let list = (data as JsonRPCresult).result as UserResult[]
             setUserReqs(list)
             setPaging({...paging,
               next: list.length === paging.limit,
               prev: paging.page > 1,
             });
+
+            ctx.FriendReqs[paging.page] = list
+            ctx.FriendReqsLastUpdate[paging.page] = new Date()
           }
           else{
+            setStatus("error")
             console.log(data.error)
           }
         }  
@@ -81,26 +100,20 @@ const FriendReqs: FC<Props> = (props) => {
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
-    if (props.setNavTitle) props.setNavTitle("Home")
-
-    // const queryCache = new QueryCache({
-    //   onError: error => {
-    //     console.log(error)
-    //   },
-   
-    //   onSuccess: data => {
-    //     console.log(data)
-    //   }
-    // })
-   
-    // const query = queryCache.find('GetSelf')
-    // console.log(query)
+    if (props.setNavTitle) props.setNavTitle("Friend Request")
+    if (status === "success" || status === "error"){
+    
+      setStatus("loading")
+      refetch()
+    }
+    
     return
   },[])
 
   const nextSearching = () => {
     let nextPage = paging.page + 1
     setPaging({...paging,page : nextPage})
+    navigate('/friendrequest?p='+nextPage);
     doSearching(nextPage+"")
   }
 
@@ -108,16 +121,19 @@ const FriendReqs: FC<Props> = (props) => {
     let prevPage = paging.page - 1
     prevPage = prevPage <= 0? 1:prevPage
     setPaging({...paging,page : prevPage})
+    navigate('/friendrequest?p='+prevPage);
     doSearching(prevPage+"")
   }
 
   const doSearching = (page: string) => {  
+    setStatus('loading')
     let rpc = new JsonRPC2("SearchUser", {uid: props.user.uid, keyword:"", page : page, limit: ""+paging.limit, status:STATUS.Pending} )
     setRpc(rpc)
-    setTimeout(refetch,300)
+    // setTimeout(refetch,300)
   }
 
-  return (
+  return (<>
+    <LoadingBar loading={status==='loading'} />
     <div className='flex flex-col rounded-md sm:bg-esecondary-color m-2 p-4'>
       {
         (userReqs.length > 0) &&<p className='text-center mb-4'>You got friend request!</p>
@@ -146,18 +162,20 @@ const FriendReqs: FC<Props> = (props) => {
           (userReqs.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
         }
         {
-          (userReqs.length === 0) &&<p>{isLoading ? "Loading..." : "No friend request yet."}</p>
+          (userReqs.length === 0) &&<p>{statuss==='loading' || status==='loading' ? "Loading..." : "No friend request yet."}</p>
         }
       </div>
     {
-      (userReqs.length > 0 || paging.page > 1 || isLoading) && 
+      (userReqs.length > 0 || paging.page > 1 || statuss==='loading') && 
       <Pagination {...paging} 
         nextBtn={nextSearching} 
         prevBtn={prevSearching} 
-        loading={isLoading}
+        loading={statuss==='loading'}
       />
     }
     </div>
+  </>
+    
   );
 };
 

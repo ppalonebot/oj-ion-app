@@ -16,6 +16,9 @@ type Props = {
   rows?:number;
   isNotResizeable? : boolean;
   onKeyDown?: (event : React.KeyboardEvent<HTMLTextAreaElement>) => void;
+  myref?:React.RefObject<HTMLTextAreaElement>;
+  onFocus?:(event: React.FocusEvent<HTMLTextAreaElement, Element>)=> void;
+  onBlur?:(event: React.FocusEvent<HTMLTextAreaElement, Element>)=> void;
 };
 
 const TextAreaForm: React.FC<Props> = (props) => {
@@ -33,6 +36,9 @@ const TextAreaForm: React.FC<Props> = (props) => {
         placeholder={props.placeholder}
         style={{resize: props.isNotResizeable? 'none' : 'both'}}
         onKeyDown={props.onKeyDown}
+        ref={props.myref}
+        onFocus={props.onFocus}
+        onBlur={props.onBlur}
       />
       {props.errorMessage && <p className='text-red-600 text-sm'>{props.errorMessage}</p>}
   </div>

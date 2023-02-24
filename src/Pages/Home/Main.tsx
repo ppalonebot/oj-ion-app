@@ -9,11 +9,11 @@ import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
-import FriendReqs from "../../Components/FriendReqs";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
 import { Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
-import Chats from "../../Components/Chats";
+import Chats from "./Chats";
+import FriendReqs from "./FriendReqs";
 
 type Props = {
   user:User
@@ -190,18 +190,15 @@ const Main: React.FC<Props> = (props) => {
     }
 
     timeoutRef.current = setTimeout(() => {
-      if (window.location.pathname === '/'){
-        const p = isNaN(parseInt(getParam("p") ?? "1")) ? 1 : parseInt(getParam("p") ?? "1");
-        console.log(p);
-        if (p === 1){
-          const currentDate = new Date();
-          const fiveMinutesEarlier = new Date(currentDate.getTime() - (6 * 60 * 1000));
-          ctx.ChatsLastUpdate[p] = fiveMinutesEarlier
-          setUpdatedChats(currentDate)
-        }
+      const currentDate = new Date();
+      const fiveMinutesEarlier = new Date(currentDate.getTime() - (6 * 60 * 1000));
+      const p = isNaN(parseInt(getParam("p") ?? "1")) ? 1 : parseInt(getParam("p") ?? "1");
+      ctx.ChatsLastUpdate[p] = fiveMinutesEarlier
+      if (window.location.pathname === '/' && p === 1){
+        setUpdatedChats(currentDate)
       }
       timeoutRef.current = null
-    }, 5000);
+    }, 4000);
   }
 
   const handleHasBeenRead = (msg:any) => {
@@ -484,10 +481,14 @@ const Main: React.FC<Props> = (props) => {
     case 'imagedetail':
       return <ImageDetail />
     case 'searchuser':
+        return (
+          <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle} target={contact}>
+            <SearchUser key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
+          </Nav>)
+    case 'friendrequest':
       return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={1} title={navTitle} target={contact}>
-          <FriendReqs user={userself} />
-          <SearchUser key={window.location.search} user={userself} setNavTitle={setNavTitle}/>
+        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-4} title={navTitle} target={contact}>
+          <FriendReqs key={window.location.search} user={userself} setNavTitle={setNavTitle} />
         </Nav>)
     default:
       return (
