@@ -34,6 +34,9 @@ export type ContactData = {
   firstLoad?:boolean;
   isActive:boolean;
   isInputFocus?:boolean;
+  inputMsg?:string;
+  selectionStart?:number;
+  selectionEnd?:number;
 }
 
 export type Room = {

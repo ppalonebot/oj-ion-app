@@ -3,7 +3,7 @@ import { User } from '../../Entity/User/User_model';
 import { myContext } from '../../lib/Context';
 import { ContactDict } from './Main';
 import TextAreaForm from '../../Components/TextAreaForm/TextAreaForm';
-import { MdMarkChatUnread, MdMessage, MdSend } from 'react-icons/md';
+import { MdMarkChatUnread, MdSend } from 'react-icons/md';
 import { Message, TargetUser } from '../../Entity/User/Contact_model';
 import Balloon from '../../Components/Balloon/Ballon';
 import { messageLimit } from '../../global';
@@ -22,7 +22,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const searchParams = new URLSearchParams(window.location.search)
   const owner = searchParams.get('usr')??""
   const [target] = React.useState<ContactDict>(props.target)
-  const [newMessage, setNewMessage] = React.useState('')
+  const [newMessage, setNewMessage] = React.useState<string>(target[owner] && target[owner].datas && target[owner].datas.inputMsg ? target[owner].datas.inputMsg! : "")
+  const [selectionStart, setSelectionStart] = React.useState<number>(target[owner] && target[owner].datas && target[owner].datas.selectionStart ? target[owner].datas.selectionStart! : 0)
+  const [selectionEnd, setSelectionEnd] = React.useState<number>(target[owner] && target[owner].datas && target[owner].datas.selectionEnd? target[owner].datas.selectionEnd! : 0)
   const msgContainerRef = React.useRef<HTMLDivElement>(null)
   const [btnLoad,setBtnLoad] = React.useState(false)
   const divsRef = React.useRef<HTMLDivElement[]>([]);
@@ -47,9 +49,14 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
       ctx.WS.send(msg);
 
+      // setTimeout(()=>{
+      //   ctx.WS!.send(msg);
+      // }, 5000)
+
       _msg.sender = {username:props.user.username} as TargetUser
 
       target[owner].datas.messages.push(_msg)
+      target[owner].datas.inputMsg = ""
       setNewMessage("")
     }
     else{
@@ -62,10 +69,10 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   React.useLayoutEffect(() => {
     if (hasMountedRef.current) return
 
-    console.log(inputRef.current)
-    if (inputRef.current && target[owner] && target[owner].datas.isInputFocus){
-      inputRef.current.focus();
-    }
+    // if (inputRef.current && target[owner] && target[owner].datas.isInputFocus){
+    //   inputRef.current.focus();
+    //   inputRef.current.setSelectionRange(selectionStart, selectionEnd);
+    // }
 
     setTimeout(() => { // add timeOut 
       handleScroll()  
@@ -102,6 +109,11 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
+    if (inputRef.current && target[owner] && target[owner].datas.isInputFocus){
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(selectionStart, selectionEnd);
+    }
+
     if (props.setNavTitle) props.setNavTitle( target[owner] ? target[owner].name : "@"+owner)
     if (props.setNavSubTitle && target[owner]) props.setNavSubTitle( target[owner].datas.wsStatus)
     if (ctx.WS !== null && owner && !target[owner]) {
@@ -129,6 +141,8 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const handleFocus = (isFocus:boolean) =>{
     if (target[owner] && inputRef.current) {
       target[owner].datas.isInputFocus = isFocus
+      // target[owner].datas.selectionStart = (inputRef.current.selectionStart);
+      // target[owner].datas.selectionEnd = (inputRef.current.selectionEnd);
     }
   }
 
@@ -222,6 +236,20 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     }
   }
 
+  const setMessage = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (event){
+      let msg = event.target.value.substring(0,500)
+      if (target[owner]) {
+        target[owner].datas.inputMsg = msg
+        target[owner].datas.selectionStart = event.target.selectionStart
+        target[owner].datas.selectionEnd = event.target.selectionEnd
+      }
+      setNewMessage(msg)
+      setSelectionStart(event.target.selectionStart)
+      setSelectionEnd(event.target.selectionEnd)
+    }
+  }
+
   const msgElements = []
   if (target[owner]){
     let myDates:Array<string> = []
@@ -274,7 +302,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
             placeholder={'type new message'} 
             value={newMessage}
             rows={2}
-            onChange={event => setNewMessage(event.target.value)}
+            onChange={setMessage}
             isNotResizeable={true}
             onKeyDown={handleKeyDown}
             myref={inputRef}

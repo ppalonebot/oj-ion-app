@@ -182,10 +182,15 @@ const Main: React.FC<Props> = (props) => {
     }
   }
 
+  const clrTO = () => {
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null
+    }
+  }
+
   const updateChatPage = () => {
     if (timeoutRef.current !== null) {
-      // clearTimeout(timeoutRef.current);
-      console.log('Timeout skipped!');
       return
     }
 
@@ -197,7 +202,7 @@ const Main: React.FC<Props> = (props) => {
       if (window.location.pathname === '/' && p === 1){
         setUpdatedChats(currentDate)
       }
-      timeoutRef.current = null
+      clrTO()
     }, 4000);
   }
 
