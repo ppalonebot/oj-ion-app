@@ -2,10 +2,11 @@ import React from "react";
 import { useMutation } from "react-query";
 import { API_URL } from "../global";
 import { JsonRPC2 } from "../lib/MyJsonRPC2";
-import { MdMail } from "react-icons/md";
+import { MdMail, MdPersonRemove } from "react-icons/md";
 import { STATUS } from "../Entity/Enum";
 import { Contact } from "../Entity/User/Contact_model";
 import { Link } from "react-router-dom";
+import { myContext } from "../lib/Context";
 
 type Props = {
   uid:string;
@@ -14,6 +15,7 @@ type Props = {
 }
 
 const CttStatus: React.FC<Props> = (props) => {
+  const ctx = React.useContext(myContext);
   const [contact,setContact] = React.useState<Contact|null>(props.contact)
   const mutationResult  = useMutation(
     (rpc : JsonRPC2) => fetch(API_URL+'/contacts/rpc', {
@@ -25,9 +27,19 @@ const CttStatus: React.FC<Props> = (props) => {
       }
     }).then(res => res.json()),
     {
-      onSuccess: (data,v ,ctx) => {
-        if (data.result !== null){
-          console.log(data.result)
+      onSuccess: (data,v ,c) => {
+        if (data.id === props.uid && data.result){
+          let p = parseInt(new URLSearchParams(window.location.search).get('p')??"1")
+          if (ctx.Friends && ctx.Friends[p]){
+            for (let i = 0; i < ctx.Friends[p].length; i++) {
+              if (ctx.Friends[p][i].username === props.target ){
+                ctx.Friends[p][i].contact = null
+              }
+            }
+          }
+          setContact(null)
+        }
+        else if (data.result.to){
           setContact(data.result as Contact)
         }
         else{
@@ -44,12 +56,18 @@ const CttStatus: React.FC<Props> = (props) => {
       }
     }
   );
-  const addFirend = mutationResult.mutate;
+  const setFriend = mutationResult.mutate;
   const status = mutationResult.status;
 
   const addBtnClicked = () =>{
     const rpc : JsonRPC2 = new JsonRPC2("AddContact",{uid:props.uid,to_usr:props.target})
-    addFirend(rpc)
+    setFriend(rpc)
+  }
+
+  const rmvBtnClicked = () =>{
+    const rpc : JsonRPC2 = new JsonRPC2("RemoveContact",{uid:props.uid,to_usr:props.target})
+    rpc.id = props.uid
+    setFriend(rpc)
   }
 
   if (!contact) {
@@ -70,6 +88,7 @@ const CttStatus: React.FC<Props> = (props) => {
             className="bg-red-500 text-white rounded hover:bg-red-700 h-8 w-full my-auto"
             disabled={status === 'loading'}
             onClick={addBtnClicked}
+            title="Add contact"
           >
             {status === 'loading'? "Sending...":"Accept"}
           </button>)
@@ -78,12 +97,21 @@ const CttStatus: React.FC<Props> = (props) => {
           <button 
             className="bg-slate-700 text-white rounded h-8 w-full my-auto"
             disabled={true}
+            title="please wait"
           >
             Waiting
           </button>)
       case STATUS.Accepted:
         return (<div className="flex justify-center w-full">
-            <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="my-auto p-1 text-green-500 hover:scale-125 duration-150"><MdMail size={28}/></Link>
+            <button 
+              className="my-auto p-1 text-red-500 hover:scale-125 duration-150"
+              disabled={status === 'loading'}
+              onClick={rmvBtnClicked}
+              title="Remove contact"
+            >
+              {status === 'loading'? "Sending...":<MdPersonRemove size={28} />}
+            </button>
+            <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="my-auto p-1 text-green-500 hover:scale-125 duration-150" title="Send message"><MdMail size={28}/></Link>
           </div>)
       default:
         return(

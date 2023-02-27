@@ -40,7 +40,6 @@ const FriendReqs: FC<Props> = (props) => {
     page:initPage,
     limit:UserCountResult});
   const [statuss, setStatus] = React.useState('idle');
-  const [userReqs, setUserReqs] = React.useState<UserResult[]>(ctx.FriendReqs[initPage]??[])
   const [rpc, setRpc] = React.useState( new JsonRPC2("SearchUser", {
     uid: props.user.uid, 
     keyword: "", 
@@ -49,6 +48,7 @@ const FriendReqs: FC<Props> = (props) => {
     status:STATUS.Pending} ) )
   const deltaWaitSec = 5*60
   const deltaSec = ctx.FriendReqsLastUpdate[initPage] ? (new Date().getTime() - ctx.FriendReqsLastUpdate[initPage].getTime()) / 1000 : deltaWaitSec;
+  const [userReqs, setUserReqs] = React.useState<UserResult[]>(ctx.FriendReqs[initPage] && !(deltaSec >= deltaWaitSec)? ctx.FriendReqs[initPage]:[])
   const { status, refetch } = useQuery(
     "FriendRequest",
     () => fetch(API_URL+'/contacts/rpc',
@@ -63,8 +63,8 @@ const FriendReqs: FC<Props> = (props) => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 1*60 * 1000,
-      cacheTime: 5 * 60 * 1000,
+      refetchInterval: deltaWaitSec * 1000,
+      cacheTime: deltaWaitSec * 1000,
       enabled: deltaSec >= deltaWaitSec,
       onError(err) {
         setStatus("error")

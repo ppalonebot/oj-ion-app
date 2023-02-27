@@ -30,7 +30,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const divsRef = React.useRef<HTMLDivElement[]>([]);
   const [visibleMsgs, setVisibleMsgs] = React.useState<string[]>([]);
   const inputRef = React.useRef<HTMLTextAreaElement| null>(null);
-
+  const [isFriend, setIsFriend] = React.useState<boolean>(target[owner] && target[owner].datas && target[owner].datas.isFriend)
   const handleSubmit = (event: React.FormEvent<HTMLFormElement> | null) => {
     if (event) event.preventDefault();
     
@@ -118,7 +118,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     if (props.setNavSubTitle && target[owner]) props.setNavSubTitle( target[owner].datas.wsStatus)
     if (ctx.WS !== null && owner && !target[owner]) {
       //init data:
-      let d =  {
+      let d: ContactData = {
         updated: new Date(),
         wsStatus: "",
         messages: [],
@@ -128,11 +128,12 @@ const Messenger: React.FC<MessengerProps> = (props) => {
         page: 0,
         newMsgCount: 0,
         firstLoad: true,
-        isActive: false
+        isActive: false,
+        isFriend: false,
       } as unknown as ContactData
       target[owner] = {username:owner, avatar:"",contact:{},datas:d,name:""} as TargetUser
 
-      ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}));
+      ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner,status:"sent", time:(new Date()).toISOString()}));
     }
 
     return
@@ -296,7 +297,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
       </div>
       <div className='w-full md:p-3 p-2 bg-esecondary-color'>
         {scrolToUnread !== "" && <div className='relative'><button onClick={scrollToNewMsg} className='absolute top-[-4.5rem] p-3 bg-blue-500 hover:bg-blue-700 rounded-full'><MdMarkChatUnread size={28} /></button></div>}
-        <form onSubmit={handleSubmit} className='flex flex-row gap-2 items-center'>
+        {isFriend && <form onSubmit={handleSubmit} className='flex flex-row gap-2 items-center'>
           <TextAreaForm className='flex-1' 
             name='message' 
             placeholder={'type new message'} 
@@ -310,7 +311,8 @@ const Messenger: React.FC<MessengerProps> = (props) => {
             onBlur={() => handleFocus(false)}
           />
           <button type="submit" className='rounded-full w-14 hover:bg-blue-700 hover:bg-opacity-20 p-4 '><MdSend size={24} /></button>
-        </form>
+        </form>}
+        {!isFriend && <p>send message not available</p>}
       </div>
     </div>
   );

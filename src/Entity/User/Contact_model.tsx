@@ -30,6 +30,7 @@ export type ContactData = {
   height:number;
   page:number;
   newMsgCount:number;
+  isFriend:boolean;
   topMsgTimeId?:string;
   firstLoad?:boolean;
   isActive:boolean;

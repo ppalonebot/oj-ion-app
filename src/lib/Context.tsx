@@ -12,6 +12,8 @@ type ContextData = {
   FriendPageLastUpdate:{ [key: number]: Date };
   FriendReqs:{ [key: number]: Array<any> };
   FriendReqsLastUpdate:{ [key: number]: Date };
+  FriendReqsCountLastUpt: Date | null;
+  FriendReqsCount : number;
 }
 const myContext = createContext<ContextData>({} as ContextData);
 
@@ -28,6 +30,8 @@ const MyProvider: FC<Props> = (props) => {
   const [firendPageLastUpdate] = useState<{ [key: number]: Date }>({})
   const [friendsReqs] = useState<{ [key: number]: Array<any> }>({})
   const [firendReqsLastUpdate] = useState<{ [key: number]: Date }>({})
+  const friendReqsCountLastUpt = null;
+  const friendReqsCount = 0;
 
   return (
     <myContext.Provider value={{
@@ -40,7 +44,9 @@ const MyProvider: FC<Props> = (props) => {
         Friends: friendsData,
         FriendPageLastUpdate: firendPageLastUpdate,
         FriendReqs : friendsReqs,
-        FriendReqsLastUpdate: firendReqsLastUpdate
+        FriendReqsLastUpdate: firendReqsLastUpdate,
+        FriendReqsCountLastUpt: friendReqsCountLastUpt,
+        FriendReqsCount: friendReqsCount,
       }}>
       {props.children}
     </myContext.Provider>

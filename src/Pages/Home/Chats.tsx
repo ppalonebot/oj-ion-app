@@ -55,8 +55,8 @@ const Chats: FC<Props> = (props) => {
       refetchOnWindowFocus: false,
       refetchOnMount: false,
       refetchIntervalInBackground: false,
-      refetchInterval: 1*60 * 1000,
-      cacheTime: 5 * 60 * 1000,
+      refetchInterval: deltaWaitSec * 1000,
+      cacheTime: deltaWaitSec * 1000,
       enabled: deltaSec >= deltaWaitSec,
       onError(err) {
         setStatus("error")
@@ -179,7 +179,7 @@ const Chats: FC<Props> = (props) => {
   return (
     <>
     <LoadingBar loading={status==='loading'} />
-    <FriendReqsChecker uid='1230' />
+    <FriendReqsChecker uid={props.user.uid} />
     <div className='flex flex-col rounded-md sm:bg-esecondary-color m-2 p-4'>
       {
         (userChats.length > 0) &&<p className='text-center mb-4'>Last Messages</p>

@@ -78,7 +78,6 @@ const SearchUser: React.FC<Props> = (props) => {
           setSearchResult(res)
           
           if (searchTerm === ""){
-            console.log("friends on data")
             ctx.Friends[p] = res
             ctx.FriendPageLastUpdate[p] = new Date()
           }
@@ -189,11 +188,11 @@ const SearchUser: React.FC<Props> = (props) => {
       <div className='flex flex-wrap gap-4 justify-center'>
       {
         searchResult && searchResult.map((o, index) => (
-          o && <div key={o.username} className='flex flex-row gap-2 flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
+          o && <div key={o.username} className='flex flex-row flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
             <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="my-auto">
               <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
             </Link>
-            <div className='my-auto flex-1 overflow-hidden'>
+            <div className='my-auto ml-2 flex-1 overflow-hidden'>
               <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="hover:text-blue-400">
                 <p>{o.name}</p>
                 <p>@{o.username}</p>

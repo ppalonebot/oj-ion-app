@@ -149,12 +149,11 @@ const Main: React.FC<Props> = (props) => {
     for (let i = 0; i < data.length; i++) {
       let msg = JSON.parse(data[i]);
 
-      // if (msg.sender){
-      //   msg["sender_id"] = msg.sender.id
-      //   msg["sender_name"] = msg.sender.name
-      // }
       console.log(msg)
       switch (msg.action) {
+        case "info":
+          handleInfo(msg)
+          break;
         case "read":
           handleHasBeenRead(msg)
           break;
@@ -271,7 +270,7 @@ const Main: React.FC<Props> = (props) => {
       // if (m.messages.length === 0) return
       for (const key in contact) {
         if (contact.hasOwnProperty(key)) {
-          if (contact[key].datas.room.id === m.target!.id){
+          if (contact[key].datas.room.name === m.target!.name){
             contact[key].datas.updated = new Date()
 
             if (props.user.username === m.sender!.username){
@@ -381,6 +380,45 @@ const Main: React.FC<Props> = (props) => {
     setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
   }
 
+  const handleInfo = (msg:any) => {
+    if (msg.status === "error"){
+      let act: string[] = msg.message.split(",");
+      if (act[0] === 'join-room-private'){
+        if (msg.sender.username && msg.sender.avatar !== 'join-room-private' && contact[msg.sender.username]){
+          if (contact[msg.sender.username].datas.firstLoad){
+            let sender = msg.sender as TargetUser
+            contact[msg.sender.username].avatar = sender.avatar
+            contact[msg.sender.username].contact = sender.contact
+            contact[msg.sender.username].name = sender.name
+            contact[msg.sender.username].username = sender.username
+            if (msg.target){
+              let m = JSON.stringify({
+                action: 'get-msg',
+                message: "1,"+messageLimit,
+                target: {
+                  id: msg.target.id,
+                  name: msg.target.name
+                }
+              } as Message)
+              socket!.send(m)
+            }
+          }
+          contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? act[1]: contact[msg.sender.username].datas.wsStatus
+          contact[msg.sender.username].datas.updated = new Date()
+          contact[msg.sender.username].datas.room = msg.target as Room
+          contact[msg.sender.username].datas.isFriend = false
+
+          setContact(contact)
+          if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+            setNavTitle(msg.sender.name)
+            setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
+          }
+        }
+
+      }
+    }
+  }
+
   const handleRoomJoined = (msg:any) => {
     if (contact[msg.sender.username]){
       if (contact[msg.sender.username].datas.firstLoad){
@@ -389,27 +427,28 @@ const Main: React.FC<Props> = (props) => {
         contact[msg.sender.username].contact = sender.contact
         contact[msg.sender.username].name = sender.name
         contact[msg.sender.username].username = sender.username
-        let m = JSON.stringify({
-          action: 'get-msg',
-          message: "1,"+messageLimit,
-          target: {
-            id: msg.target.id,
-            name: msg.target.name
-          }
-        } as Message)
-  
-        socket!.send(m)
+        if (msg.target){
+          let m = JSON.stringify({
+            action: 'get-msg',
+            message: "1,"+messageLimit,
+            target: {
+              id: msg.target.id,
+              name: msg.target.name
+            }
+          } as Message)
+          socket!.send(m)
+        }
       }
       contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus
       contact[msg.sender.username].datas.updated = new Date()
       contact[msg.sender.username].datas.room = msg.target as Room
-      
-    }
-    setContact(contact)
-    if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
-      // setNavTitle(msg.sender.name + " <" + (contact[msg.sender.username].datas.wsStatus + ">"))
-      setNavTitle(msg.sender.name)
-      setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
+      contact[msg.sender.username].datas.isFriend = true
+
+      setContact(contact)
+      if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+        setNavTitle(msg.sender.name)
+        setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
+      }
     }
   }
 
@@ -417,11 +456,6 @@ const Main: React.FC<Props> = (props) => {
     console.log("connected to WS!")
     setCurrentReconnectDelay(initialReconnectDelay)
     setIsWsConnected(true)
-    // let owner = getParam('usr')
-    // console.log(ctx.WS)
-    // if (ctx.WS !== null && owner && !contact[owner] && window.location.pathname === '/message') {
-    //   ctx.WS.send(JSON.stringify({ action: 'join-room-private', message: owner}))
-    // }
   }
 
   function onWebsocketClose(e:CloseEvent) {
@@ -443,7 +477,7 @@ const Main: React.FC<Props> = (props) => {
 
   const reconnectWs = ()=>{
     if (wsstatus !== 'loading'){
-      console.log("reconnectWs")
+      console.log("reconnectWS")
       setWsstatus('loading')
       // setConnected(false)
       getwebsockettoken(props.user.uid)
@@ -498,7 +532,6 @@ const Main: React.FC<Props> = (props) => {
     default:
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={0} title={navTitle} target={contact}>
-          
           {
             isLoading? <p className='text-center mt-10'>Loading...</p> :
             error? <p className='text-center mt-10'>Error:  {(error as { message: string }).message}</p> :
