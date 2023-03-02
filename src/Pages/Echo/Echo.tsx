@@ -4,6 +4,7 @@ import JsonRPCSignal from '../../lib/JsonRPCSignal';
 import OjClient from '../../lib/OjClient';
 import { LocalStream } from 'ion-sdk-js';
 import { Configuration, ActiveLayer} from 'ion-sdk-js/lib/client';
+import { IonSFUJSONRPCSignal } from 'ion-sdk-js/lib/signal/json-rpc-impl';
 
 const Echo = () => {
   const localVideo = React.useRef<HTMLVideoElement>(null);
@@ -27,7 +28,7 @@ const Echo = () => {
     codec: 'vp8'
   }
 
- const [signalLocal, setSignalLocal] = React.useState<JsonRPCSignal | null>(null)
+ const [signalLocal, setSignalLocal] = React.useState<IonSFUJSONRPCSignal | null>(null)
  const [clientLocal, setClientLocal] = React.useState<OjClient | null>(null)
 
   let onlyOnce = 0
@@ -35,7 +36,7 @@ const Echo = () => {
     if (onlyOnce === 0){
       onlyOnce = 1
       console.log("on effect")
-      let sl = new JsonRPCSignal(serverUrl)
+      let sl = new IonSFUJSONRPCSignal(serverUrl)
       let cl = new OjClient(sl, config)
 
       sl.onopen = () => cl?.join(params !== null && params.has("session") ? params.get("session") as string : "iontesting","");

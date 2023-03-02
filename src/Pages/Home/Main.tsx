@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "react-query";
 import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
-import { API_URL, API_WSURL, messageLimit } from "../../global";
+import { API_URL, API_WSURL, MessageLimit } from "../../global";
 import Profile from "./Profile";
 import Nav from "../../Components/Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
@@ -11,17 +11,15 @@ import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
 import Messenger from "./Messenger";
 import { myContext } from "../../lib/Context";
-import { Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
+import { ContactDict, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
 import Chats from "./Chats";
 import FriendReqs from "./FriendReqs";
+import ChatInput from "../../Components/ChatInput";
+import JsonRPCSignal from "../../lib/JsonRPCSignal";
 
 type Props = {
   user:User
   page?:string
-}
-
-export interface ContactDict {
-  [key: string]: TargetUser;
 }
 
 const initialReconnectDelay = 1000
@@ -40,7 +38,7 @@ const Main: React.FC<Props> = (props) => {
   const [updated, setUpdated] = React.useState(new Date())
   const [updatedChats, setUpdatedChats] = React.useState(new Date())
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  let socket : WebSocket | null = null
+  // let socket : WebSocket | null = null
   const { isLoading, error, refetch } = useQuery(
     'GetSelf',
     () => fetch(API_URL+'/usr/rpc',
@@ -100,12 +98,28 @@ const Main: React.FC<Props> = (props) => {
 			onSuccess: (data,v ,c) => {
         setWsstatus("success")
 				if (data.result !== null){
-          socket = new WebSocket(API_WSURL + "/ws?jwt=" + data.result.jwt)
-          socket.addEventListener('open', (event) => { onWebsocketOpen(event) });
-          // socket.addEventListener('message', (event) => { handleNewMessage(event) });
-          socket.addEventListener('close', (event) => { onWebsocketClose(event) });
-          socket.onmessage = handleNewMessage
-          ctx.SetWs(socket)
+          // socket = new WebSocket(API_WSURL + "/ws?jwt=" + data.result.jwt)
+          // socket.addEventListener('open', (event) => { onWebsocketOpen(event) });
+          // // socket.addEventListener('message', (event) => { handleNewMessage(event) });
+          // socket.addEventListener('close', (event) => { onWebsocketClose(event) });
+          // socket.onmessage = handleNewMessage
+          // ctx.SetWs(socket)
+
+          ctx.Comm = new JsonRPCSignal(
+            API_WSURL + "/ws?jwt=" + data.result.jwt,
+            userself,
+            isWsConnected, 
+            setIsWsConnected,
+            currentReconnectDelay,
+            setCurrentReconnectDelay,
+            reconnectWs,
+            contact,
+            setContact,
+            updateMessagePage,
+            updateChatPage,
+          )
+          ctx.SetComm(ctx.Comm)
+
 				}
 				else{
           console.log("no data result")
@@ -118,7 +132,6 @@ const Main: React.FC<Props> = (props) => {
 			}
 		}
 	)
-	
 	const getwebsockettoken = websockettokenMutation.mutate
 
   const refreshToken = () =>{
@@ -142,49 +155,58 @@ const Main: React.FC<Props> = (props) => {
     }, 300);
   }
 
-  const handleNewMessage = (event: MessageEvent<any>) => {
-    let data = event.data;
+  // const handleNewMessage = (event: MessageEvent<any>) => {
+  //   let data = event.data;
     
-    data = data.split(/\r?\n/)
-    for (let i = 0; i < data.length; i++) {
-      let msg = JSON.parse(data[i]);
+  //   data = data.split(/\r?\n/)
+  //   for (let i = 0; i < data.length; i++) {
+  //     let msg = JSON.parse(data[i]);
 
-      console.log(msg)
-      switch (msg.action) {
-        case "info":
-          handleInfo(msg)
-          break;
-        case "read":
-          handleHasBeenRead(msg)
-          break;
-        case "delv":
-          handleDelivered(msg)
-          break;
-        case "get-msg":
-          handleGetMessage(msg)
-          break;
-        case "send-message":
-          handleChatMessage(msg);
-          break;
-        case "user-join":
-          handleUserJoined(msg);
-          break;
-        case "user-left":
-          handleUserLeft(msg);
-          break;
-        case "room-joined":
-          handleRoomJoined(msg)
-          break;
-        default:
-          break;
-      }
-    }
-  }
+  //     console.log(msg)
+  //     switch (msg.action) {
+  //       case "info":
+  //         handleInfo(msg)
+  //         break;
+  //       case "read":
+  //         handleHasBeenRead(msg)
+  //         break;
+  //       case "delv":
+  //         handleDelivered(msg)
+  //         break;
+  //       case "get-msg":
+  //         handleGetMessage(msg)
+  //         break;
+  //       case "send-message":
+  //         handleChatMessage(msg);
+  //         break;
+  //       case "user-join":
+  //         handleUserJoined(msg);
+  //         break;
+  //       case "user-left":
+  //         handleUserLeft(msg);
+  //         break;
+  //       case "room-joined":
+  //         handleRoomJoined(msg)
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   }
+  // }
 
   const clrTO = () => {
     if (timeoutRef.current !== null) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null
+    }
+  }
+
+  const updateMessagePage = (u:string,t:string, st:string) => {
+    console.log('updateMessagePage')
+    if (getParam('usr') === u && window.location.pathname === '/message') {
+      if (t !== navTitle) setNavTitle(t)
+      if (st !== navSubTitle) setNavSubTitle(st)
+      setUpdated(new Date())
     }
   }
 
@@ -205,281 +227,277 @@ const Main: React.FC<Props> = (props) => {
     }, 4000);
   }
 
-  const handleHasBeenRead = (msg:any) => {
-    updateChatPage()
-    if (contact){
-      let m = msg as Message
-      for (const key in contact) {
-        if (contact.hasOwnProperty(key)) {
-          if (contact[key].datas.room.id === m.target!.id){
-            contact[key].datas.updated = new Date()
+  // const handleHasBeenRead = (msg:any) => {
+  //   updateChatPage()
+  //   if (contact){
+  //     let m = msg as Message
+  //     for (const key in contact) {
+  //       if (contact.hasOwnProperty(key)) {
+  //         if (contact[key].datas.room.id === m.target!.id){
+  //           contact[key].datas.updated = new Date()
 
-            for(let i = contact[key].datas.messages.length -1; i>= 0; i--){
-              if (contact[key].datas.messages[i].id 
-                && contact[key].datas.messages[i].id.length > 0 
-                && contact[key].datas.messages[i].id === m.message
-              ){
-                contact[key].datas.messages[i].id = m.message
-                contact[key].datas.messages[i].status = "read"
-              }
-            }
+  //           for(let i = contact[key].datas.messages.length -1; i>= 0; i--){
+  //             if (contact[key].datas.messages[i].id 
+  //               && contact[key].datas.messages[i].id.length > 0 
+  //               && contact[key].datas.messages[i].id === m.message
+  //             ){
+  //               contact[key].datas.messages[i].id = m.message
+  //               contact[key].datas.messages[i].status = "read"
+  //             }
+  //           }
 
-            if (getParam('usr') === key && window.location.pathname === '/message'){
-              setUpdated(contact[key].datas.updated)
-            }
-            break
-          }
-        }
-      }
-    }
-  }
+  //           if (getParam('usr') === key && window.location.pathname === '/message'){
+  //             setUpdated(contact[key].datas.updated)
+  //           }
+  //           break
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
-  const handleDelivered = (msg:any) => {
-    updateChatPage()
-    if (contact){
-      let m = msg as Messages
-      for (const key in contact) {
-        if (contact.hasOwnProperty(key)) {
-          if (contact[key].datas.room.id === m.target!.id){
-            contact[key].datas.updated = new Date()
+  // const handleDelivered = (msg:any) => {
+  //   updateChatPage()
+  //   if (contact){
+  //     let m = msg as Messages
+  //     for (const key in contact) {
+  //       if (contact.hasOwnProperty(key)) {
+  //         if (contact[key].datas.room.id === m.target!.id){
+  //           contact[key].datas.updated = new Date()
 
-            for(let i =0; i< contact[key].datas.messages.length; i++){
-              for(let j =0; j< m.messages.length; j++)
-              if (contact[key].datas.messages[i].time === m.messages[j].time){
-                contact[key].datas.messages[i].id = m.messages[j].id
-                contact[key].datas.messages[i].status = "delv"
-              }
-            }
+  //           for(let i =0; i< contact[key].datas.messages.length; i++){
+  //             for(let j =0; j< m.messages.length; j++)
+  //             if (contact[key].datas.messages[i].time === m.messages[j].time){
+  //               contact[key].datas.messages[i].id = m.messages[j].id
+  //               contact[key].datas.messages[i].status = "delv"
+  //             }
+  //           }
 
-            if (getParam('usr') === key && window.location.pathname === '/message'){
-              setUpdated(contact[key].datas.updated)
-            }
-            break
-          }
-        }
-      }
-    }
+  //           if (getParam('usr') === key && window.location.pathname === '/message'){
+  //             setUpdated(contact[key].datas.updated)
+  //           }
+  //           break
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
+  // const handleGetMessage = (msg:any) => {
+  //   if (contact){
+  //     let m = msg as Messages
+  //     let found = false
+  //     // if (m.messages.length === 0) return
+  //     for (const key in contact) {
+  //       if (contact.hasOwnProperty(key)) {
+  //         if (contact[key].datas.room.name === m.target!.name){
+  //           contact[key].datas.updated = new Date()
 
-  }
+  //           if (props.user.username === m.sender!.username){
+  //             //disable load old msg
+  //             if (m.messages && m.messages.length < MessageLimit) contact[key].datas.page =-1
+  //             else contact[key].datas.page += 1
 
-  const handleGetMessage = (msg:any) => {
-    if (contact){
-      let m = msg as Messages
-      let found = false
-      // if (m.messages.length === 0) return
-      for (const key in contact) {
-        if (contact.hasOwnProperty(key)) {
-          if (contact[key].datas.room.name === m.target!.name){
-            contact[key].datas.updated = new Date()
+  //             for(let i = 0; i < m.messages.length;i++){
+  //               let newMsg = {
+  //                 id:m.messages[i].id, 
+  //                 action:m.messages[i].action,
+  //                 message:m.messages[i].message,
+  //                 sender:{
+  //                   avatar: m.messages[i].sender === props.user.username? props.user.avatar : contact[m.messages[i].sender].avatar,
+  //                   name: m.messages[i].sender === props.user.username? props.user.name : contact[m.messages[i].sender].name,
+  //                   username: m.messages[i].sender === props.user.username? props.user.username : contact[m.messages[i].sender].username,
+  //                 },
+  //                 status: m.messages[i].status,
+  //                 target:m.target,
+  //                 time: m.messages[i].time,
+  //               } as Message
 
-            if (props.user.username === m.sender!.username){
-              //disable load old msg
-              if (m.messages && m.messages.length < messageLimit) contact[key].datas.page =-1
-              else contact[key].datas.page += 1
+  //               let alreadyExist = false
+  //               for(let j = 0; j < contact[key].datas.messages.length; j++){
+  //                 if (contact[key].datas.messages[j].time === newMsg.time){
+  //                   if (!contact[key].datas.messages[j].id){
+  //                     contact[key].datas.messages[j] = newMsg
+  //                     alreadyExist = true
+  //                   }
+  //                   else{
+  //                     if (contact[key].datas.messages[j].id === newMsg.id){
+  //                       contact[key].datas.messages[j] = newMsg
+  //                       alreadyExist = true
+  //                     }
+  //                   }
+  //                 }
+  //               }
 
-              for(let i = 0; i < m.messages.length;i++){
-                let newMsg = {
-                  id:m.messages[i].id, 
-                  action:m.messages[i].action,
-                  message:m.messages[i].message,
-                  sender:{
-                    avatar: m.messages[i].sender === props.user.username? props.user.avatar : contact[m.messages[i].sender].avatar,
-                    name: m.messages[i].sender === props.user.username? props.user.name : contact[m.messages[i].sender].name,
-                    username: m.messages[i].sender === props.user.username? props.user.username : contact[m.messages[i].sender].username,
-                  },
-                  status: m.messages[i].status,
-                  target:m.target,
-                  time: m.messages[i].time,
-                } as Message
+  //               if (!alreadyExist) contact[key].datas.messages.unshift(newMsg)
+  //             }
+  //           }
+  //           if (getParam('usr') === key && window.location.pathname === '/message'){
+  //             setUpdated(contact[key].datas.updated)
+  //           }
+  //           break
+  //         }
+  //       }
+  //     }
+  //     if (found) setContact(contact)
+  //   }
+  // }
 
-                let alreadyExist = false
-                for(let j = 0; j < contact[key].datas.messages.length; j++){
-                  if (contact[key].datas.messages[j].time === newMsg.time){
-                    if (!contact[key].datas.messages[j].id){
-                      contact[key].datas.messages[j] = newMsg
-                      alreadyExist = true
-                    }
-                    else{
-                      if (contact[key].datas.messages[j].id === newMsg.id){
-                        contact[key].datas.messages[j] = newMsg
-                        alreadyExist = true
-                      }
-                    }
-                  }
-                }
-
-                if (!alreadyExist) contact[key].datas.messages.unshift(newMsg)
-              }
-            }
-            if (getParam('usr') === key && window.location.pathname === '/message'){
-              setUpdated(contact[key].datas.updated)
-            }
-            break
-          }
-        }
-      }
-      if (found) setContact(contact)
-    }
-  }
-
-  const handleChatMessage = (msg:any) => {
-    if (contact){
-      let message = msg as Message
-      let found = false
-      for (const key in contact) {
-        if (contact.hasOwnProperty(key)) {
-          if (contact[key].datas.room.id === message.target!.id){
+  // const handleChatMessage = (msg:any) => {
+  //   if (contact){
+  //     let message = msg as Message
+  //     let found = false
+  //     for (const key in contact) {
+  //       if (contact.hasOwnProperty(key)) {
+  //         if (contact[key].datas.room.id === message.target!.id){
             
-            contact[key].datas.updated = new Date()
-            if (props.user.username === message.sender!.username){
-              for(let i = contact[key].datas.messages.length - 1; i >= 0; i--){
-                if (contact[key].datas.messages[i].time === message.time){
-                  found = true
-                  contact[key].datas.messages[i] = message
-                  break
-                }
-              }
-            }
+  //           contact[key].datas.updated = new Date()
+  //           if (props.user.username === message.sender!.username){
+  //             for(let i = contact[key].datas.messages.length - 1; i >= 0; i--){
+  //               if (contact[key].datas.messages[i].time === message.time){
+  //                 found = true
+  //                 contact[key].datas.messages[i] = message
+  //                 break
+  //               }
+  //             }
+  //           }
             
-            if (!found) contact[key].datas.messages.push(message)
-            found = true
-            contact[key].datas.newMsgCount +=1
-            if (getParam('usr') === key && window.location.pathname === '/message'){
-              setUpdated(contact[key].datas.updated)
-            }
-            break
-          }
-        }
-      }
-      if (found) setContact(contact)
-      else {
-        console.log("todo: notif to chats page and chats nav")
-      }
-    }
-  }
+  //           if (!found) contact[key].datas.messages.push(message)
+  //           found = true
+  //           contact[key].datas.newMsgCount +=1
+  //           if (getParam('usr') === key && window.location.pathname === '/message'){
+  //             setUpdated(contact[key].datas.updated)
+  //           }
+  //           break
+  //         }
+  //       }
+  //     }
+  //     if (found) setContact(contact)
+  //     else {
+  //       console.log("todo: notif to chats page and chats nav")
+  //     }
+  //   }
+  // }
 
-  function setContactWsStatus(username: string,name:string, sta:string){
-    if (contact[username]){
-      contact[username].datas.wsStatus = sta
-      contact[username].datas.updated = new Date()
-    }
-    setContact(contact)
-    if (getParam('usr') === username && window.location.pathname === '/message') {
-      // setNavTitle(name + " <" + (contact[username].datas.wsStatus + ">"))
-      setNavTitle(name)
-      setNavSubTitle(contact[username].datas.wsStatus)
-    }
-  }
+  // function setContactWsStatus(username: string,name:string, sta:string){
+  //   if (contact[username]){
+  //     contact[username].datas.wsStatus = sta
+  //     contact[username].datas.updated = new Date()
+  //   }
+  //   setContact(contact)
+  //   if (getParam('usr') === username && window.location.pathname === '/message') {
+  //     // setNavTitle(name + " <" + (contact[username].datas.wsStatus + ">"))
+  //     setNavTitle(name)
+  //     setNavSubTitle(contact[username].datas.wsStatus)
+  //   }
+  // }
 
-  const handleUserJoined = (msg:any) => {
-    setContactWsStatus(msg.sender.username,msg.sender.name,"online")
-  }
+  // const handleUserJoined = (msg:any) => {
+  //   setContactWsStatus(msg.sender.username,msg.sender.name,"online")
+  // }
 
-  const handleUserLeft = (msg:any) => {
-    setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
-  }
+  // const handleUserLeft = (msg:any) => {
+  //   setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
+  // }
 
-  const handleInfo = (msg:any) => {
-    if (msg.status === "error"){
-      let act: string[] = msg.message.split(",");
-      if (act[0] === 'join-room-private'){
-        if (msg.sender.username && msg.sender.avatar !== 'join-room-private' && contact[msg.sender.username]){
-          if (contact[msg.sender.username].datas.firstLoad){
-            let sender = msg.sender as TargetUser
-            contact[msg.sender.username].avatar = sender.avatar
-            contact[msg.sender.username].contact = sender.contact
-            contact[msg.sender.username].name = sender.name
-            contact[msg.sender.username].username = sender.username
-            if (msg.target){
-              let m = JSON.stringify({
-                action: 'get-msg',
-                message: "1,"+messageLimit,
-                target: {
-                  id: msg.target.id,
-                  name: msg.target.name
-                }
-              } as Message)
-              socket!.send(m)
-            }
-          }
-          contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? act[1]: contact[msg.sender.username].datas.wsStatus
-          contact[msg.sender.username].datas.updated = new Date()
-          contact[msg.sender.username].datas.room = msg.target as Room
-          contact[msg.sender.username].datas.isFriend = false
+  // const handleInfo = (msg:any) => {
+  //   if (msg.status === "error"){
+  //     let act: string[] = msg.message.split(",");
+  //     if (act[0] === 'join-room-private'){
+  //       if (msg.sender.username && msg.sender.avatar !== 'join-room-private' && contact[msg.sender.username]){
+  //         if (contact[msg.sender.username].datas.firstLoad){
+  //           let sender = msg.sender as TargetUser
+  //           contact[msg.sender.username].avatar = sender.avatar
+  //           contact[msg.sender.username].contact = sender.contact
+  //           contact[msg.sender.username].name = sender.name
+  //           contact[msg.sender.username].username = sender.username
+  //           if (msg.target){
+  //             let m = JSON.stringify(new JsonRPC2("get-msg",{
+  //               action: 'get-msg',
+  //               message: "1,"+MessageLimit,
+  //               target: {
+  //                 id: msg.target.id,
+  //                 name: msg.target.name
+  //               }
+  //             } as Message))
+  //             socket!.send(m)
+  //           }
+  //         }
+  //         contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? act[1]: contact[msg.sender.username].datas.wsStatus
+  //         contact[msg.sender.username].datas.updated = new Date()
+  //         contact[msg.sender.username].datas.room = msg.target as Room
+  //         contact[msg.sender.username].datas.isFriend = false
 
-          setContact(contact)
-          if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
-            setNavTitle(msg.sender.name)
-            setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
-          }
-        }
+  //         setContact(contact)
+  //         if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+  //           setNavTitle(msg.sender.name)
+  //           setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 
-      }
-    }
-  }
+  // const handleRoomJoined = (msg:any) => {
+  //   if (contact[msg.sender.username]){
+  //     if (contact[msg.sender.username].datas.firstLoad){
+  //       let sender = msg.sender as TargetUser
+  //       contact[msg.sender.username].avatar = sender.avatar
+  //       contact[msg.sender.username].contact = sender.contact
+  //       contact[msg.sender.username].name = sender.name
+  //       contact[msg.sender.username].username = sender.username
+  //       if (msg.target){
+  //         let m = JSON.stringify(new JsonRPC2("get-msg",{
+  //           action: 'get-msg',
+  //           message: "1,"+MessageLimit,
+  //           target: {
+  //             id: msg.target.id,
+  //             name: msg.target.name
+  //           }
+  //         } as Message))
+  //         socket!.send(m)
+  //       }
+  //     }
+  //     contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus
+  //     contact[msg.sender.username].datas.updated = new Date()
+  //     contact[msg.sender.username].datas.room = msg.target as Room
+  //     contact[msg.sender.username].datas.isFriend = true
 
-  const handleRoomJoined = (msg:any) => {
-    if (contact[msg.sender.username]){
-      if (contact[msg.sender.username].datas.firstLoad){
-        let sender = msg.sender as TargetUser
-        contact[msg.sender.username].avatar = sender.avatar
-        contact[msg.sender.username].contact = sender.contact
-        contact[msg.sender.username].name = sender.name
-        contact[msg.sender.username].username = sender.username
-        if (msg.target){
-          let m = JSON.stringify({
-            action: 'get-msg',
-            message: "1,"+messageLimit,
-            target: {
-              id: msg.target.id,
-              name: msg.target.name
-            }
-          } as Message)
-          socket!.send(m)
-        }
-      }
-      contact[msg.sender.username].datas.wsStatus = msg.message !== "" ? msg.message: contact[msg.sender.username].datas.wsStatus
-      contact[msg.sender.username].datas.updated = new Date()
-      contact[msg.sender.username].datas.room = msg.target as Room
-      contact[msg.sender.username].datas.isFriend = true
+  //     setContact(contact)
+  //     if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
+  //       setNavTitle(msg.sender.name)
+  //       setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
+  //     }
+  //   }
+  // }
 
-      setContact(contact)
-      if (getParam('usr') === msg.sender.username && window.location.pathname === '/message') {
-        setNavTitle(msg.sender.name)
-        setNavSubTitle(contact[msg.sender.username].datas.wsStatus)
-      }
-    }
-  }
+  // function onWebsocketOpen(e: Event) {
+  //   console.log("connected to WS!")
+  //   setCurrentReconnectDelay(initialReconnectDelay)
+  //   setIsWsConnected(true)
+  // }
 
-  function onWebsocketOpen(e: Event) {
-    console.log("connected to WS!")
-    setCurrentReconnectDelay(initialReconnectDelay)
-    setIsWsConnected(true)
-  }
+  // function onWebsocketClose(e:CloseEvent) {
+  //   console.log("diconnected from WS!")
+  //   setIsWsConnected(false)
+  //   ctx.SetWs(null)
 
-  function onWebsocketClose(e:CloseEvent) {
-    console.log("diconnected from WS!")
-    setIsWsConnected(false)
-    ctx.SetWs(null)
+  //   setTimeout(() => {
+  //     if (currentReconnectDelay < maxReconnectDelay) {
+  //       setCurrentReconnectDelay(currentReconnectDelay*2)
+  //     }
+  //     if (currentReconnectDelay > 1000*64){
+  //       setCurrentReconnectDelay(1000*64)
+  //     }
+  //     reconnectWs();
+  //   }, currentReconnectDelay + Math.floor(Math.random() * 3000));
 
-    setTimeout(() => {
-      if (currentReconnectDelay < maxReconnectDelay) {
-        setCurrentReconnectDelay(currentReconnectDelay*2)
-      }
-      if (currentReconnectDelay > 1000*64){
-        setCurrentReconnectDelay(1000*64)
-      }
-      reconnectWs();
-    }, currentReconnectDelay + Math.floor(Math.random() * 3000));
-
-  }
+  // }
 
   const reconnectWs = ()=>{
     if (wsstatus !== 'loading'){
       console.log("reconnectWS")
       setWsstatus('loading')
-      // setConnected(false)
       getwebsockettoken(props.user.uid)
     }
   }
@@ -499,11 +517,29 @@ const Main: React.FC<Props> = (props) => {
     return
   },[])
 
+  React.useEffect(()=>{
+    if (ctx.Comm){
+      ctx.Comm.currentUser = userself
+      ctx.Comm.isWsConnected = isWsConnected
+      ctx.Comm.setIsWsConnected = setIsWsConnected
+      ctx.Comm.currentReconnectDelay = currentReconnectDelay
+      ctx.Comm.setCurrentReconnectDelay = setCurrentReconnectDelay
+      ctx.Comm.reconnectWs = reconnectWs
+      ctx.Comm.contact = contact
+      ctx.Comm.setContact = setContact
+      ctx.Comm.updateMessagePage = updateMessagePage
+      ctx.Comm.updateChatPage = updateChatPage
+    }
+  }, [userself,isWsConnected,currentReconnectDelay,contact]);
+
   switch (props.page) {
     case 'message':
       return (
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} subtitle={navSubTitle} target={contact}>
-          <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
+          <div className="h-full max-h-full flex flex-col justify-between">
+            <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
+            <ChatInput key={navTitle} user={userself} target={contact} />
+          </div>
         </Nav>);
     case 'profile':
       return (

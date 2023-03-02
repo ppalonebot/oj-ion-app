@@ -21,6 +21,10 @@ export type TargetUser = {
   datas:ContactData;
 }
 
+export interface ContactDict {
+  [key: string]: TargetUser;
+}
+
 export type ContactData = {
   messages : Array<Message>;
   wsStatus: string;

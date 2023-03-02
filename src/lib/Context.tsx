@@ -1,7 +1,10 @@
 import { createContext, useState, FC } from "react";
 import { LastMessages, TargetUser, UserResult } from "../Entity/User/Contact_model";
+import JsonRPCSignal from "./JsonRPCSignal";
 
 type ContextData = {
+  Comm:JsonRPCSignal|null;
+  SetComm: (ws: JsonRPCSignal | null)=> void
   WS:WebSocket|null;
   SetWs: (ws: WebSocket | null)=> void
   RoomData:{ [key: string]: TargetUser };
@@ -22,6 +25,7 @@ type Props = {
 }
 
 const MyProvider: FC<Props> = (props) => {
+  const [comm, setComm] = useState<JsonRPCSignal | null>(null);
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [roomData, setRoomData] = useState<{ [key: string]: TargetUser }>({})
   const [chatsData] = useState<{ [key: number]: Array<LastMessages> }>({})
@@ -35,6 +39,8 @@ const MyProvider: FC<Props> = (props) => {
 
   return (
     <myContext.Provider value={{
+        Comm: comm,
+        SetComm: setComm,
         WS:ws, 
         SetWs:setWs, 
         RoomData:roomData, 

@@ -6,9 +6,9 @@ import './style.css';
 import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen, MdQuestionAnswer} from 'react-icons/md';
 import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
-import { ContactDict } from "../../Pages/Home/Main";
 import { myContext } from "../../lib/Context";
 import Messenger from "../../Pages/Home/Messenger";
+import { ContactDict } from "../../Entity/User/Contact_model";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
