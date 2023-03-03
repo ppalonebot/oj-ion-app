@@ -9,7 +9,7 @@ import AvatarDetail from "./AvatarDetail";
 import ProfileEdit from "./ProfileEdit";
 import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
-import Messenger from "./Messenger";
+import Messenger from "../../Components/Messenger";
 import { myContext } from "../../lib/Context";
 import { ContactDict, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
 import Chats from "./Chats";
@@ -202,12 +202,11 @@ const Main: React.FC<Props> = (props) => {
   }
 
   const updateMessagePage = (u:string,t:string, st:string) => {
-    console.log('updateMessagePage')
     if (getParam('usr') === u && window.location.pathname === '/message') {
-      if (t !== navTitle) setNavTitle(t)
-      if (st !== navSubTitle) setNavSubTitle(st)
-      setUpdated(new Date())
+      setNavTitle(t)
+      setNavSubTitle(st)
     }
+    setUpdated(new Date())
   }
 
   const updateChatPage = () => {
@@ -538,7 +537,7 @@ const Main: React.FC<Props> = (props) => {
         <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} subtitle={navSubTitle} target={contact}>
           <div className="h-full max-h-full flex flex-col justify-between">
             <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
-            <ChatInput key={navTitle} user={userself} target={contact} />
+            <ChatInput key={navTitle} user={userself} target={contact} setUpdated={setUpdated}/>
           </div>
         </Nav>);
     case 'profile':

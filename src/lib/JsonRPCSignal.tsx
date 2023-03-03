@@ -60,6 +60,7 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   }
 
   handleRoomJoined = (msg:any) => {
+    console.log(msg)
     if (this.contact[msg.sender.username]){
       if (this.contact[msg.sender.username].datas.firstLoad){
         let sender = msg.sender as TargetUser
@@ -92,20 +93,23 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
     if (this.contact[username]){
       this.contact[username].datas.wsStatus = sta
       this.contact[username].datas.updated = new Date()
+      this.setContact(this.contact)
+      this.updateMessagePage(username,this.contact[username].name,this.contact[username].datas.wsStatus)
     }
-    this.setContact(this.contact)
-    this.updateMessagePage(username,this.contact[username].name,this.contact[username].datas.wsStatus)
   }
 
   handleUserJoined = (msg:any) => {
+    console.log(msg)
     this.setContactWsStatus(msg.sender.username,msg.sender.name,"online")
   }
 
   handleUserLeft = (msg:any) => {
+    console.log(msg)
     this.setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
   }
 
   handleChatMessage = (msg:any) => {
+    console.log(msg)
     if (this.contact){
       let message = msg as Message
       let found = false
@@ -140,6 +144,7 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   }
 
   handleGetMessage = (msg:any) => {
+    console.log(msg)
     if (this.contact){
       let m = msg as Messages
       let found = false
@@ -197,6 +202,7 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   }
 
   handleDelivered = (msg:any) => {
+    console.log(msg)
     this.updateChatPage()
     if (this.contact){
       let m = msg as Messages
@@ -222,6 +228,7 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   }
 
   handleHasBeenRead = (msg:any) => {
+    console.log(msg)
     this.updateChatPage()
     if (this.contact){
       let m = msg as Message
@@ -248,6 +255,7 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   }
 
   handleInfo = (msg:any) => {
+    console.log(msg)
     if (msg.status === "error"){
       let act: string[] = msg.message.split(",");
       if (act[0] === 'join-room-private'){

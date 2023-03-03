@@ -1,13 +1,12 @@
 import React from 'react';
-import { User } from '../../Entity/User/User_model';
-import { myContext } from '../../lib/Context';
+import { User } from '../Entity/User/User_model';
+import { myContext } from '../lib/Context';
 import { MdMarkChatUnread } from 'react-icons/md';
-import { ContactDict, Message, TargetUser } from '../../Entity/User/Contact_model';
-import Balloon from '../../Components/Balloon/Ballon';
-import { MessageLimit } from '../../global';
-import { ContactData } from '../../Entity/User/Contact_model';
-import { FormatDate } from '../../lib/Utils';
-import { JsonRPC2 } from '../../lib/MyJsonRPC2';
+import { ContactDict, Message, TargetUser } from '../Entity/User/Contact_model';
+import Balloon from './Balloon/Ballon';
+import { MessageLimit } from '../global';
+import { ContactData } from '../Entity/User/Contact_model';
+import { FormatDate } from '../lib/Utils';
 
 export type MessengerProps = {
   user:User
@@ -31,32 +30,38 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     if (hasMountedRef.current) return
 
     setTimeout(() => { // add timeOut 
+      if (msgContainerRef.current) {
+        if (target[owner]){
+          if (target[owner].datas.firstLoad){
+            msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight
+            target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
+          }
+        }
+      }
       handleScroll()  
-    }, 200);
+    }, 300);
     
     if (msgContainerRef.current) {
       if (target[owner]){
         if (target[owner].datas.firstLoad){
           msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
-          target[owner].datas.firstLoad = false
-          handleScroll()
-          return
-        }
-        if (target[owner].datas.topMsgTimeId && target[owner].datas.topMsgTimeId !== ""){
+          target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
+        } else if (target[owner].datas.topMsgTimeId && target[owner].datas.topMsgTimeId !== ""){
           const element = msgContainerRef.current!.querySelector ('#id'+target[owner].datas.topMsgTimeId) as HTMLElement
           if (element) {
             msgContainerRef.current.scrollTop = element.offsetTop - 200
           }
           target[owner].datas.topMsgTimeId = ""
         } else {
-        msgContainerRef.current.scrollTop = target[owner].datas.scroll >= 96? 
-          msgContainerRef.current.scrollHeight : ((msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100) >= 90 ?  
-            msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
+          msgContainerRef.current.scrollTop = target[owner].datas.scroll >= 96? 
+            msgContainerRef.current.scrollHeight : ((msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100) >= 90 ?  
+              msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
         }
         target[owner].datas.height = msgContainerRef.current.scrollHeight
       } else {
         msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
       }
+      
     } 
     handleScroll()   
   }, []);
@@ -97,7 +102,8 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   const handleScroll = () => {
     if (target[owner] && msgContainerRef.current) {
-      target[owner].datas.scroll = (msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100;
+      let d = msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight
+      target[owner].datas.scroll = d === 0 ? target[owner].datas.scroll : (msgContainerRef.current.scrollTop / d) * 100;
 
       const viewportHeight = window.innerHeight;
       const scrollTop = window.scrollY || window.pageYOffset;
@@ -206,18 +212,17 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   }
   return (
     <>
-      <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
-        <div className="max-w-3xl w-full">
-          <div className='h-10 w-full'>
-          {!btnLoad && target[owner] && target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
-          </div>
-          {msgElements}
+    <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
+      <div className="max-w-3xl w-full">
+        <div className='h-10 w-full'>
+        {!btnLoad && target[owner] && target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
         </div>
-        
+        {msgElements}
       </div>
-      {scrolToUnread !== "" && <div className='relative'>
-        <button onClick={scrollToNewMsg} className='absolute bottom-2 left-2 p-3 bg-blue-500 hover:bg-blue-700 rounded-full'><MdMarkChatUnread size={28} /></button>
-      </div>}
+    </div>
+    {scrolToUnread !== "" && <div className='relative'>
+      <button onClick={scrollToNewMsg} className='absolute bottom-2 left-2 p-3 bg-blue-500 hover:bg-blue-700 rounded-full'><MdMarkChatUnread size={28} /></button>
+    </div>}
     </>
   );
 };

@@ -8,7 +8,8 @@ import { User } from "../Entity/User/User_model";
 
 type Props = {
   user:User;
-  target:ContactDict
+  target:ContactDict;
+  setUpdated: (dt:Date) => void
 }
 
 const ChatInput: React.FC<Props> = (props) => {
@@ -16,7 +17,7 @@ const ChatInput: React.FC<Props> = (props) => {
   const searchParams = new URLSearchParams(window.location.search)
   const owner = searchParams.get('usr')??""
   const [target] = React.useState<ContactDict>(props.target)
-  const [isFriend, setIsFriend] = React.useState<boolean>(target[owner] && target[owner].datas && target[owner].datas.isFriend)
+  const isFriend = (target[owner] && target[owner].datas && target[owner].datas.isFriend)
   const inputRef = React.useRef<HTMLTextAreaElement| null>(null);
   const [newMessage, setNewMessage] = React.useState<string>(target[owner] && target[owner].datas && target[owner].datas.inputMsg ? target[owner].datas.inputMsg! : "")
   const [selectionStart, setSelectionStart] = React.useState<number>(target[owner] && target[owner].datas && target[owner].datas.selectionStart ? target[owner].datas.selectionStart! : 0)
@@ -47,9 +48,11 @@ const ChatInput: React.FC<Props> = (props) => {
       target[owner].datas.messages.push(_msg)
       target[owner].datas.inputMsg = ""
       setNewMessage("")
+      props.setUpdated(new Date())
     }
     else{
       console.log(target[owner])
+      console.log(ctx.Comm!.contact[owner])
     }
   };
 

@@ -7,7 +7,6 @@ import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKey
 import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 import { myContext } from "../../lib/Context";
-import Messenger from "../../Pages/Home/Messenger";
 import { ContactDict } from "../../Entity/User/Contact_model";
 
 type Props = React.PropsWithChildren<{ 
@@ -101,7 +100,7 @@ const Nav: React.FC<Props> = (props) => {
       icon:<MdOutlinePowerSettingsNew size={24}/>,
     }
   ]
-  if (props.children && React.isValidElement(props.children) && props.children.type === Messenger){
+  if (props.children && React.isValidElement(props.children) && window.location.pathname === '/message'){
     links.push({
       key: "closeroom",
       label: "Close Room",
@@ -117,6 +116,7 @@ const Nav: React.FC<Props> = (props) => {
   for (const key in props.target) {
     if (props.target.hasOwnProperty(key)) {
       sortedUsers.push(props.target[key]);
+      if (!props.target[key].avatar) console.log(props.target[key])
     }
   }
   sortedUsers.sort((a, b) => (a.datas.updated < b.datas.updated) ? 1 : -1);
@@ -127,7 +127,7 @@ const Nav: React.FC<Props> = (props) => {
       <div key={user.username} className="flex flex-row items-center">
         <Link className={`w-full nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
           <i className="nav-link-icon">
-            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar?user.avatar:"/image/404notfound")} alt={user.username}/>
+            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar && user.avatar !== "" ?user.avatar:"/image/404notfound"+user.avatar)} alt={user.username}/>
             {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={10}/></p>}
           </i>
           <span className="nav-link-name">{user.name}</span>
