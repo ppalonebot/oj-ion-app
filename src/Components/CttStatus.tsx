@@ -1,17 +1,19 @@
-import React from "react";
+import React , {Fragment} from "react";
 import { useMutation } from "react-query";
 import { API_URL } from "../global";
 import { JsonRPC2 } from "../lib/MyJsonRPC2";
-import { MdMail, MdPersonRemove } from "react-icons/md";
+import { MdExpandMore, MdMail, MdPersonRemove, MdVideocam } from "react-icons/md";
 import { STATUS } from "../Entity/Enum";
 import { Contact } from "../Entity/User/Contact_model";
 import { Link } from "react-router-dom";
 import { myContext } from "../lib/Context";
+import { Popover, Transition } from "@headlessui/react";
 
 type Props = {
   uid:string;
   target:string;
   contact:Contact|null;
+  isShowAll?:boolean;
 }
 
 const CttStatus: React.FC<Props> = (props) => {
@@ -102,17 +104,51 @@ const CttStatus: React.FC<Props> = (props) => {
             Waiting
           </button>)
       case STATUS.Accepted:
-        return (<div className="flex justify-center w-full">
+        return (<>
+          {!props.isShowAll ? <div className="flex justify-center w-full">
+            <Popover className="relative">
+              <Popover.Button>
+                <div 
+                  className="my-auto p-1 text-eprimary-color hover:scale-125 duration-150 ui-open:rotate-180 ui-open:transform"
+                  title="Menu">
+                <MdExpandMore size={28} />
+                </div>
+              </Popover.Button>
+              <Transition
+                as={Fragment}
+                enter="transition ease-out duration-100"
+                enterFrom="transform opacity-0 scale-95"
+                enterTo="transform opacity-100 scale-100"
+                leave="transition ease-in duration-75"
+                leaveFrom="transform opacity-100 scale-100"
+                leaveTo="transform opacity-0 scale-95"
+              >
+                <Popover.Panel className="w-48 z-10 absolute p-2 flex flex-col bg-eprimary-color rounded-md top-3 right-0 text-black">
+                  <Link to={process.env.PUBLIC_URL+"/echo?usr="+props.target} className="flex flex-row items-center gap-2 my-auto p-2 hover:bg-black rounded-md duration-150 hover:bg-opacity-20"><MdVideocam size={28}/>Video calling</Link>
+                  <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="flex flex-row items-center gap-2 my-auto p-2 hover:bg-black rounded-md duration-150 hover:bg-opacity-20"><MdMail size={28}/>Send message</Link>
+                  <button 
+                    className="my-auto p-2 hover:bg-black rounded-md duration-150 hover:bg-opacity-20"
+                    disabled={status === 'loading'}
+                    onClick={rmvBtnClicked}
+                    >
+                    {status === 'loading'? "Sending...":<span className="flex flex-row items-center gap-2"><MdPersonRemove size={28} />Remove contact</span>}
+                  </button>
+                </Popover.Panel>
+              </Transition>
+            </Popover>
+          </div> :
+          <div className="flex justify-center w-full">
             <button 
-              className="my-auto p-1 text-red-500 hover:scale-125 duration-150"
+              className="my-auto p-2 text-red-500 hover:scale-125 duration-150"
               disabled={status === 'loading'}
               onClick={rmvBtnClicked}
-              title="Remove contact"
-            >
+              title="Remove contact">
               {status === 'loading'? "Sending...":<MdPersonRemove size={28} />}
             </button>
-            <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="my-auto p-1 text-green-500 hover:scale-125 duration-150" title="Send message"><MdMail size={28}/></Link>
-          </div>)
+            <Link to={process.env.PUBLIC_URL+"/message?usr="+props.target} className="my-auto p-2 text-green-500 hover:scale-125 duration-150" title="Send messages"><MdMail size={28}/></Link>
+            <Link to={process.env.PUBLIC_URL+"/echo?usr="+props.target} className="my-auto p-2 text-eprimary-color hover:scale-125 duration-150" title="Video calling"><MdVideocam size={28}/></Link>
+          </div>}
+        </>)
       default:
         return(
           <>#empty</>

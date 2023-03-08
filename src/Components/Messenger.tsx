@@ -19,7 +19,6 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const ctx = React.useContext(myContext)
   const searchParams = new URLSearchParams(window.location.search)
   const owner = searchParams.get('usr')??""
-  const [target] = React.useState<ContactDict>(props.target)
   const msgContainerRef = React.useRef<HTMLDivElement>(null)
   const [btnLoad,setBtnLoad] = React.useState(false)
   const divsRef = React.useRef<HTMLDivElement[]>([]);
@@ -31,10 +30,10 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
     setTimeout(() => { // add timeOut 
       if (msgContainerRef.current) {
-        if (target[owner]){
-          if (target[owner].datas.firstLoad){
+        if (props.target[owner]){
+          if (props.target[owner].datas.firstLoad){
             msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight
-            target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
+            props.target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
           }
         }
       }
@@ -42,22 +41,22 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     }, 300);
     
     if (msgContainerRef.current) {
-      if (target[owner]){
-        if (target[owner].datas.firstLoad){
+      if (props.target[owner]){
+        if (props.target[owner].datas.firstLoad){
           msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
-          target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
-        } else if (target[owner].datas.topMsgTimeId && target[owner].datas.topMsgTimeId !== ""){
-          const element = msgContainerRef.current!.querySelector ('#id'+target[owner].datas.topMsgTimeId) as HTMLElement
+          props.target[owner].datas.firstLoad = msgContainerRef.current.scrollTop === 0
+        } else if (props.target[owner].datas.topMsgTimeId && props.target[owner].datas.topMsgTimeId !== ""){
+          const element = msgContainerRef.current!.querySelector ('#id'+props.target[owner].datas.topMsgTimeId) as HTMLElement
           if (element) {
             msgContainerRef.current.scrollTop = element.offsetTop - 200
           }
-          target[owner].datas.topMsgTimeId = ""
+          props.target[owner].datas.topMsgTimeId = ""
         } else {
-          msgContainerRef.current.scrollTop = target[owner].datas.scroll >= 96? 
+          msgContainerRef.current.scrollTop = props.target[owner].datas.scroll >= 96? 
             msgContainerRef.current.scrollHeight : ((msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100) >= 90 ?  
-              msgContainerRef.current.scrollHeight : ((target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
+              msgContainerRef.current.scrollHeight : ((props.target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(props.target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
         }
-        target[owner].datas.height = msgContainerRef.current.scrollHeight
+        props.target[owner].datas.height = msgContainerRef.current.scrollHeight
       } else {
         msgContainerRef.current.scrollTop = msgContainerRef.current.scrollHeight 
       }
@@ -70,9 +69,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
-    if (props.setNavTitle) props.setNavTitle( target[owner] ? target[owner].name : "@"+owner)
-    if (props.setNavSubTitle && target[owner]) props.setNavSubTitle( target[owner].datas.wsStatus)
-    if (ctx.Comm !== null && owner && !target[owner]) {
+    if (props.setNavTitle) props.setNavTitle( props.target[owner] ? props.target[owner].name : "@"+owner)
+    if (props.setNavSubTitle && props.target[owner]) props.setNavSubTitle( props.target[owner].datas.wsStatus)
+    if (ctx.Comm !== null && owner && !props.target[owner]) {
       //init data:
       let d: ContactData = {
         updated: new Date(),
@@ -87,7 +86,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
         isActive: false,
         isFriend: false,
       } as unknown as ContactData
-      target[owner] = {username:owner, avatar:"",contact:{},datas:d,name:""} as TargetUser
+      props.target[owner] = {username:owner, avatar:"",contact:{},datas:d,name:""} as TargetUser
 
       ctx.Comm.notify('join-room-private',{  
         action: 'join-room-private', 
@@ -101,9 +100,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   },[])
 
   const handleScroll = () => {
-    if (target[owner] && msgContainerRef.current) {
+    if (props.target[owner] && msgContainerRef.current) {
       let d = msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight
-      target[owner].datas.scroll = d === 0 ? target[owner].datas.scroll : (msgContainerRef.current.scrollTop / d) * 100;
+      props.target[owner].datas.scroll = d === 0 ? props.target[owner].datas.scroll : (msgContainerRef.current.scrollTop / d) * 100;
 
       const viewportHeight = window.innerHeight;
       const scrollTop = window.scrollY || window.pageYOffset;
@@ -120,18 +119,18 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           let id = div.getAttribute('id')
           if (id && id.length > 0 && ctx.Comm){
             id = id.substring(2)
-            for(let i =0 ; i< target[owner].datas.messages.length; i++){
-              if(target[owner].datas.messages[i].id === id){
-                if (target[owner].datas.messages[i].status === "read") continue
-                if (target[owner].datas.messages[i].sender?.username === props.user.username) continue
+            for(let i =0 ; i< props.target[owner].datas.messages.length; i++){
+              if(props.target[owner].datas.messages[i].id === id){
+                if (props.target[owner].datas.messages[i].status === "read") continue
+                if (props.target[owner].datas.messages[i].sender?.username === props.user.username) continue
 
-                target[owner].datas.messages[i].status = "read"
+                props.target[owner].datas.messages[i].status = "read"
                 let _msg = {
                   action: 'read',
-                  message: target[owner].datas.messages[i].id,
+                  message: props.target[owner].datas.messages[i].id,
                   target: {
-                    id: target[owner].datas.room.id,
-                    name: target[owner].datas.room.name
+                    id: props.target[owner].datas.room.id,
+                    name: props.target[owner].datas.room.name
                   },
                 } as Message
                 ctx.Comm.notify('read',_msg)
@@ -147,16 +146,16 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   };
 
   const loadMoreMessage = () =>{
-    if (target[owner] && target[owner].datas.page >=0 && ctx.Comm){
+    if (props.target[owner] && props.target[owner].datas.page >=0 && ctx.Comm){
       setBtnLoad(true)
-      let page = target[owner].datas.page + Math.floor(target[owner].datas.newMsgCount/MessageLimit) +1
-      if (target[owner].datas.messages.length> 0) target[owner].datas.topMsgTimeId = target[owner].datas.messages[0].id
+      let page = props.target[owner].datas.page + Math.floor(props.target[owner].datas.newMsgCount/MessageLimit) +1
+      if (props.target[owner].datas.messages.length> 0) props.target[owner].datas.topMsgTimeId = props.target[owner].datas.messages[0].id
       ctx.Comm.notify('get-msg',{
         action: 'get-msg',
         message: page+","+MessageLimit,
         target: {
-          id: target[owner].datas.room.id,
-          name: target[owner].datas.room.name
+          id: props.target[owner].datas.room.id,
+          name: props.target[owner].datas.room.name
         }
       } as Message)
     }
@@ -177,10 +176,10 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   }
 
   const msgElements = []
-  if (target[owner]){
+  if (props.target[owner]){
     let myDates:Array<string> = []
-    for (let i=0;i<target[owner].datas.messages.length; i++) {
-      const message = target[owner].datas.messages[i]
+    for (let i=0;i<props.target[owner].datas.messages.length; i++) {
+      const message = props.target[owner].datas.messages[i]
       const dt = FormatDate(message.time)
       const localTimeString = dt.time
       const formattedDate = dt.date
@@ -191,7 +190,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
       msgElements.push(
         <div key={message.time} ref={(el) => {
           if (el) {
-            divsRef.current[target[owner].datas.messages.indexOf(message)] = el;
+            divsRef.current[props.target[owner].datas.messages.indexOf(message)] = el;
           }
         }}
         data-id={message.time} id={"id"+message.id} data-status={message.status} className={message.sender!.username === props.user.username ? 'flex flex-row justify-end p-2':'flex flex-row justify-start p-2'}>
@@ -205,7 +204,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           </Balloon>
         </div> 
       )
-      if (scrolToUnread === "" && message.status !== "read" && message.sender!.username !== props.user.username && target[owner].datas.scroll < 98) {
+      if (scrolToUnread === "" && message.status !== "read" && message.sender!.username !== props.user.username && props.target[owner].datas.scroll < 98) {
         scrolToUnread = message.time
       }
     }
@@ -215,7 +214,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
       <div className="max-w-3xl w-full">
         <div className='h-10 w-full'>
-        {!btnLoad && target[owner] && target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
+        {!btnLoad && props.target[owner] && props.target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
         </div>
         {msgElements}
       </div>

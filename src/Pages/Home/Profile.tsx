@@ -99,7 +99,7 @@ const Profile: React.FC<Props> = (props) => {
           </Link >}
           {owner && <div>
             {(!profileData) && <span>Loading...</span>}
-            {profileData && <CttStatus contact={profileData.contact} uid={props.user.uid} target={profileData.username}/>}
+            {profileData && <CttStatus contact={profileData.contact} uid={props.user.uid} target={profileData.username} isShowAll={true}/>}
           </div>}
         </div>
         

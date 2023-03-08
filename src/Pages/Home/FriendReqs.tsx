@@ -153,7 +153,7 @@ const FriendReqs: FC<Props> = (props) => {
                 
               </div>
               <div className='flex w-20'>
-                <CttStatus contact={o.contact} uid={props.user.uid} target={o.username}/>
+                <CttStatus contact={o.contact} uid={props.user.uid} target={o.username} />
               </div>
             </div>
           ))

@@ -36,6 +36,60 @@ class JsonRPCSignal extends IonSFUJSONRPCSignal {
   ) {
 
     super(uri);
+    this.socket.onmessage = (event: MessageEvent<any>) => {
+      const jsonStrings = event.data.split(/\r?\n/);
+      if (jsonStrings.length > 1){
+        try {
+          const myObject = JSON.parse(event.data);
+          //handled by parent class
+        } catch (e) {
+          for (const jsonString of jsonStrings) {
+            try {
+              const resp = JSON.parse(jsonString);
+              if (resp.method === 'offer') {
+                if (this.onnegotiate)
+                    this.onnegotiate(resp.params);
+              } else if (resp.method === 'trickle') {
+                if (this.ontrickle)
+                    this.ontrickle(resp.params);
+              } else {
+                switch (resp.method) {
+                  case "info":
+                    this.handleInfo(resp.params)
+                    break;
+                  case "read":
+                    this.handleHasBeenRead(resp.params)
+                    break;
+                  case "delv":
+                    this.handleDelivered(resp.params)
+                    break;
+                  case "get-msg":
+                    this.handleGetMessage(resp.params)
+                    break;
+                  case "send-message":
+                    this.handleChatMessage(resp.params);
+                    break;
+                  case "user-join":
+                    this.handleUserJoined(resp.params);
+                    break;
+                  case "user-left":
+                    this.handleUserLeft(resp.params);
+                    break;
+                  case "room-joined":
+                    this.handleRoomJoined(resp.params)
+                    break;
+                  default:
+                    console.log(resp)
+                    break;
+                }
+              }
+            } catch (err) {
+              console.error(`Error parsing JSON: ${err}`);
+            }
+          }
+        }
+      }
+    }
     this.currentUser = currentUser
     this.isWsConnected = isWsConnected
     this.setIsWsConnected = setIsWsConnected

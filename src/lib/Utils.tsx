@@ -10,3 +10,8 @@ export function FormatDate(isoDateTime: string): { date: string, time: string, i
     isToday: isToday
   };
 }
+
+export function SortNames(name1: string, name2: string): [string, string] {
+  const sortedNames = [name1, name2].sort();
+  return [sortedNames[0], sortedNames[1]];
+}

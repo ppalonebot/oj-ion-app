@@ -29,7 +29,8 @@ export type MainLink = {
 
 const Nav: React.FC<Props> = (props) => {
   const [show, setShow] = React.useState(false);
-  const ctx = React.useContext(myContext)
+  const [chCount, setChCount] = React.useState(props.target? Object.keys(props.target).length : 0);
+  // const ctx = React.useContext(myContext)
   const navigate = useNavigate()
 
   const pages : Array<MainLink> = [
@@ -86,7 +87,8 @@ const Nav: React.FC<Props> = (props) => {
       //   ctx.WS.send(msg);
       // }
       delete props.target[uname]
-      navigate(process.env.PUBLIC_URL+'/');
+      if (window.location.pathname === "/message") navigate(process.env.PUBLIC_URL+'/');
+      else setChCount(chCount-1)
     }
   }
 
@@ -116,7 +118,6 @@ const Nav: React.FC<Props> = (props) => {
   for (const key in props.target) {
     if (props.target.hasOwnProperty(key)) {
       sortedUsers.push(props.target[key]);
-      if (!props.target[key].avatar) console.log(props.target[key])
     }
   }
   sortedUsers.sort((a, b) => (a.datas.updated < b.datas.updated) ? 1 : -1);
@@ -187,7 +188,7 @@ const Nav: React.FC<Props> = (props) => {
                 })
               }
             </div>
-            <div className='nav-list'>
+            <div className='nav-list' data-count={chCount}>
               {userElements}
             </div>
           </div>
