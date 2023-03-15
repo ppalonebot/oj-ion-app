@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-useless-constructor */
 
-import { Signal, Trickle } from 'ion-sdk-js';
+import { Trickle } from 'ion-sdk-js';
+import { IonSFUJSONRPCSignal } from 'ion-sdk-js/lib/signal/json-rpc-impl';
 import { JsonRPC2 } from './MyJsonRPC2';
 import { ContactDict, Message, Messages, Room, TargetUser } from '../Entity/User/Contact_model';
 import { MessageLimit } from '../global';
@@ -9,11 +10,7 @@ import { User } from '../Entity/User/User_model';
 const initialReconnectDelay = 1000
 const maxReconnectDelay = 16000
 
-class JsonRPCSignal implements Signal {
-  socket: WebSocket;
-  onnegotiate?: (jsep: RTCSessionDescriptionInit) => void;
-  ontrickle?: (trickle: Trickle) => void;
-
+class JsonRPCSignal extends IonSFUJSONRPCSignal {
   currentUser:User
   isWsConnected: boolean
   setIsWsConnected: (state: boolean) => void
@@ -38,60 +35,61 @@ class JsonRPCSignal implements Signal {
     updateChatPage: () => void,
   ) {
 
-    this.socket = new WebSocket(uri);
-    this.socket.addEventListener('open', this.onWebsocketOpen);
-    this.socket.addEventListener('error', (e) => {
-      console.log(e)
-    });
-    this.socket.addEventListener('close', this.onWebsocketClose);
-    this.socket.addEventListener('message', async (event) => {
+    super(uri);
+    this.socket.onmessage = (event: MessageEvent<any>) => {
       const jsonStrings = event.data.split(/\r?\n/);
-      for (const jsonString of jsonStrings) {
+      if (jsonStrings.length > 1){
         try {
-          const resp = JSON.parse(jsonString);
-          if (resp.method === 'offer') {
-            if (this.onnegotiate)
-                this.onnegotiate(resp.params);
-          } else if (resp.method === 'trickle') {
-            if (this.ontrickle)
-                this.ontrickle(resp.params);
-          } else {
-            switch (resp.method) {
-              case "info":
-                this.handleInfo(resp.params)
-                break;
-              case "read":
-                this.handleHasBeenRead(resp.params)
-                break;
-              case "delv":
-                this.handleDelivered(resp.params)
-                break;
-              case "get-msg":
-                this.handleGetMessage(resp.params)
-                break;
-              case "send-message":
-                this.handleChatMessage(resp.params);
-                break;
-              case "user-join":
-                this.handleUserJoined(resp.params);
-                break;
-              case "user-left":
-                this.handleUserLeft(resp.params);
-                break;
-              case "room-joined":
-                this.handleRoomJoined(resp.params)
-                break;
-              default:
-                console.log("got response:")
-                console.log(resp)
-                break;
+          const myObject = JSON.parse(event.data);
+          //handled by parent class
+        } catch (e) {
+          for (const jsonString of jsonStrings) {
+            try {
+              const resp = JSON.parse(jsonString);
+              if (resp.method === 'offer') {
+                if (this.onnegotiate)
+                    this.onnegotiate(resp.params);
+              } else if (resp.method === 'trickle') {
+                if (this.ontrickle)
+                    this.ontrickle(resp.params);
+              } else {
+                switch (resp.method) {
+                  case "info":
+                    this.handleInfo(resp.params)
+                    break;
+                  case "read":
+                    this.handleHasBeenRead(resp.params)
+                    break;
+                  case "delv":
+                    this.handleDelivered(resp.params)
+                    break;
+                  case "get-msg":
+                    this.handleGetMessage(resp.params)
+                    break;
+                  case "send-message":
+                    this.handleChatMessage(resp.params);
+                    break;
+                  case "user-join":
+                    this.handleUserJoined(resp.params);
+                    break;
+                  case "user-left":
+                    this.handleUserLeft(resp.params);
+                    break;
+                  case "room-joined":
+                    this.handleRoomJoined(resp.params)
+                    break;
+                  default:
+                    console.log(resp)
+                    break;
+                }
+              }
+            } catch (err) {
+              console.error(`Error parsing JSON: ${err}`);
             }
           }
-        } catch (err) {
-          console.error(`Error parsing JSON: ${err}`);
         }
       }
-    });
+    }
     this.currentUser = currentUser
     this.isWsConnected = isWsConnected
     this.setIsWsConnected = setIsWsConnected
@@ -102,6 +100,17 @@ class JsonRPCSignal implements Signal {
     this.setContact = setContact
     this.updateMessagePage = updateMessagePage
     this.updateChatPage = updateChatPage
+
+    this.onopen = this.onWebsocketOpen
+    this.onclose = this.onWebsocketClose
+    this.on_notify('info',this.handleInfo)
+    this.on_notify('read',this.handleHasBeenRead)
+    this.on_notify('delv',this.handleDelivered)
+    this.on_notify('get-msg',this.handleGetMessage)
+    this.on_notify('send-message',this.handleChatMessage)
+    this.on_notify('user-join',this.handleUserJoined)
+    this.on_notify('user-left',this.handleUserLeft)
+    this.on_notify('room-joined',this.handleRoomJoined)
   }
 
   handleRoomJoined = (msg:any) => {
@@ -355,69 +364,33 @@ class JsonRPCSignal implements Signal {
     }, this.currentReconnectDelay + Math.floor(Math.random() * 3000));
   }
 
-  async join(sid: any, uid: any, offer: any) : Promise<RTCSessionDescriptionInit> {
+  join(sid: string, uid: string, offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> {
     console.log("JsonRPCSignal send join: "+sid+", uid:"+uid)
     console.log(offer)
-    return this.call('join', { sid, uid, offer });
+    return super.join(sid, uid, offer);
   }
-
-  trickle(trickle: any) {
+  
+  trickle(trickle: Trickle): void{
     console.log("-----JsonRPCSignal send trickle:"+trickle.target)
     console.log(trickle)
-    this.notify('trickle', trickle);
-  }
+    return super.trickle(trickle)
+  };
 
-  async offer(offer: any) : Promise<RTCSessionDescriptionInit> {
+  offer(offer: RTCSessionDescriptionInit): Promise<RTCSessionDescriptionInit> {
     console.log("JsonRPCSignal send offer:")
     console.log(offer)
-    return this.call('offer', { desc: offer });
+    return super.offer(offer)
   }
 
-  answer(answer: any) {
+  answer(answer: RTCSessionDescriptionInit): void {
     console.log("JsonRPCSignal send answer:")
     console.log(answer)
-    this.notify('answer', { desc: answer });
+    return super.answer(answer)
   }
 
   notify(method: string, params: any): void {
     this.socket.send(JSON.stringify(new JsonRPC2(method,params)));
   }
-  
-  // JsonRPC2 Call
-  async call<RTCSessionDescriptionInit>(method: string, params: { sid?: any; uid?: any; offer?: any; desc?: any; }) : Promise<RTCSessionDescriptionInit> {
-    let msg = new JsonRPC2(method,params)
-    console.log("call "+method+ " id: "+msg.id)
-    this.socket.send(JSON.stringify(msg));
-    return new Promise((resolve, reject) => {
-      const handler = (event: { data: string; }) => {
-        const jsonStrings = event.data.split(/\r?\n/);
-        for (const jsonString of jsonStrings) {
-          try {
-            const resp = JSON.parse(jsonString);
-            if (resp.id === msg.id) {
-              if (resp.error)
-                  reject(resp.error);
-              else
-                  resolve(resp.result);
-              this.socket.removeEventListener('message', handler);
-            }
-            // else {
-            //   console.error("unhandle resp:")
-            //   console.error(resp)
-            // }
-          } catch (err) {
-            console.error(`Error parsing JSON: ${err}`);
-          }
-        }
-      };
-      this.socket.addEventListener('message', handler);
-    });
-  }
-  
-  close() {
-    this.socket.close();
-  }
-
 }
 
 export default JsonRPCSignal

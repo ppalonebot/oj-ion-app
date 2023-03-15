@@ -13,19 +13,16 @@ export default class OjClient extends Client {
     console.log("OjClient join: "+sid+ ", uid:" + uid)
     // Call the parent class' join() method to perform the default behavior
     return super.join(sid, uid)//.then(() => {      
-      //handshaking is done, the most important result is tansports
-      //transports[0] for publish data (video/audio) to other
-      //transport[1] for receive data from other
-      //tranports[0].pc and tranports[0].api are used to start the stream
-      //tranports[1].pc.ontrack trigger this.ontrack to get data stream from other
-    //   console.log("OjClient join done:")
-    //   console.log(this.transports)
-      
+    //   if (this.transports){
+    //     this.status = "connected"
+    //   } else {
+    //     this.status = "fail"
+    //   }
     // });
   }
 
   publish(stream: LocalStream, encodingParams?: RTCRtpEncodingParameters[] | undefined): void {
     super.publish(stream,encodingParams)
-    console.log("publish media id: "+ stream.id)
+    console.log("publish stream id: "+ stream.id)
   }
 }

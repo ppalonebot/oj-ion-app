@@ -6,7 +6,7 @@ import './style.css';
 import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen, MdQuestionAnswer} from 'react-icons/md';
 import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
-import { myContext } from "../../lib/Context";
+// import { myContext } from "../../lib/Context";
 import { ContactDict } from "../../Entity/User/Contact_model";
 
 type Props = React.PropsWithChildren<{ 
@@ -87,8 +87,8 @@ const Nav: React.FC<Props> = (props) => {
       //   ctx.WS.send(msg);
       // }
       delete props.target[uname]
-      if (window.location.pathname === "/message") navigate(process.env.PUBLIC_URL+'/');
-      else setChCount(chCount-1)
+      setChCount(chCount-1)
+      if (window.location.pathname === "/message") navigate(process.env.PUBLIC_URL+'/'); 
     }
   }
 
@@ -113,22 +113,22 @@ const Nav: React.FC<Props> = (props) => {
     })
   }
 
-  const userElements = [];
-  const sortedUsers = [];
-  for (const key in props.target) {
-    if (props.target.hasOwnProperty(key)) {
+  let userElements = [];
+  let sortedUsers = [];
+  for (let key in props.target) {
+    if (props.target[key]) {
       sortedUsers.push(props.target[key]);
     }
   }
   sortedUsers.sort((a, b) => (a.datas.updated < b.datas.updated) ? 1 : -1);
   sortedUsers.sort((a, b) => (a.datas.wsStatus === 'online' ? -1 : 1));
 
-  for (const user of sortedUsers) {
+  for (let user of sortedUsers) {
     userElements.push(
       <div key={user.username} className="flex flex-row items-center">
         <Link className={`w-full nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
           <i className="nav-link-icon">
-            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar && user.avatar !== "" ?user.avatar:"/image/404notfound"+user.avatar)} alt={user.username}/>
+            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar !== "" ?user.avatar:'/default-avatar.jpg')} alt={user.username}/>
             {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={10}/></p>}
           </i>
           <span className="nav-link-name">{user.name}</span>
@@ -140,6 +140,13 @@ const Nav: React.FC<Props> = (props) => {
       </div>
     );
   }
+
+  // const hasMountedRef = React.useRef(false);
+  // React.useEffect(()=>{
+  //   if (hasMountedRef.current) return
+  //   hasMountedRef.current = true;
+
+  // },[]
 
   return (
     <>

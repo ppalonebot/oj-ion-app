@@ -2,7 +2,7 @@ import { useMutation, useQuery } from "react-query";
 import { User } from "../../Entity/User/User_model";
 import React from 'react';
 import { JsonRPC2, JsonRPCresult } from "../../lib/MyJsonRPC2";
-import { API_URL, API_WSURL, MessageLimit } from "../../global";
+import { API_URL, API_WSURL } from "../../global";
 import Profile from "./Profile";
 import Nav from "../../Components/Nav/Nav";
 import AvatarDetail from "./AvatarDetail";
@@ -11,7 +11,7 @@ import SearchUser from "./SearchUser";
 import ImageDetail from "./ImageDetail";
 import Messenger from "../../Components/Messenger";
 import { myContext } from "../../lib/Context";
-import { ContactDict, Message, Messages, Room, TargetUser } from "../../Entity/User/Contact_model";
+import { ContactDict} from "../../Entity/User/Contact_model";
 import Chats from "./Chats";
 import FriendReqs from "./FriendReqs";
 import ChatInput from "../../Components/ChatInput";
@@ -192,6 +192,37 @@ const Main: React.FC<Props> = (props) => {
     return new URLSearchParams(window.location.search).get(key)??""
   }
 
+  if (window.location.pathname !== '/echo'){
+    if (ctx.WebCam) {
+      console.log("turn off webcam")
+      const tracks = ctx.WebCam.getTracks()
+      if (tracks) tracks.forEach(track => {
+        track.stop()
+        console.log("stop",track.id, track.kind)
+      });
+      ctx.WebCam.unpublish()
+      ctx.WebCam = null
+    }
+
+    if (ctx.SharedScreen) {
+      console.log("close shared screen")
+      const tracks = ctx.SharedScreen.getTracks()
+      if (tracks) tracks.forEach(track => {
+        track.stop()
+        console.log("stop",track.id, track.kind)
+      });
+      ctx.SharedScreen.unpublish()
+      ctx.SharedScreen = null
+    }
+    
+    if (ctx.VicallCli) {
+      console.log("hang up vicall")
+      ctx.VicallCli.leave()
+      if (ctx.Comm) ctx.Comm.notify("leave-vicall","true")
+      ctx.VicallCli = null
+    }
+  }
+  
   const hasMountedRef = React.useRef(false);
   React.useEffect(()=>{
     if (hasMountedRef.current) return
