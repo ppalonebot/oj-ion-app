@@ -7,13 +7,17 @@ import { User } from '../Entity/User/User_model';
 import { ContactDict } from '../Entity/User/Contact_model';
 import { SortNames } from '../lib/Utils';
 import { useNavigate } from 'react-router-dom';
-import { MdClose, MdMenu } from 'react-icons/md';
+import { MdClose, MdMenu, MdMessage } from 'react-icons/md';
 import { Transition } from '@headlessui/react';
+import Loading from './Loading';
 
-export type EchoProps = {
+export type EchoProps = React.PropsWithChildren<{
   user:User
+  isLoading: boolean
+  error: unknown
   target:ContactDict
-}
+  setUpdated: (date: Date) => void
+}>
 
 const Echo: React.FC<EchoProps> = (props) =>{
   const ctx = React.useContext(myContext)
@@ -34,23 +38,38 @@ const Echo: React.FC<EchoProps> = (props) =>{
   const [client, setClient] = React.useState<OjClient | null>(null)
   const streams : Record<string, any> = {};
   const [showMenu, setShowMenu] = React.useState<boolean>(true)
+  const [showMessage, setShowMessage] = React.useState<boolean>(false)
   const [status, setStatus] = React.useState<string>("idle")
 
+  // const config : Configuration = {
+  //   iceServers: [
+  //     {
+  //       urls: "stun:stun.l.google.com:19302",
+  //     },
+  //   ],
+  //   codec: 'vp8'
+  // }   
   const config : Configuration = {
     iceServers: [
-      {
-        urls: "stun:stun.l.google.com:19302",
-      },
+      {urls: "stun:stun.l.google.com:19302"},
+      {urls: "stun:stun1.l.google.com:19302"},
+      {urls: "stun:stun2.l.google.com:19302"},
+      {urls: "stun:stun3.l.google.com:19302"},
+      {urls: "stun:stun4.l.google.com:19302"},
+      {urls: "stun:stun.stunprotocol.org"},
+      {urls: "stun:stun.voipbuster.com"},
+      {urls: "stun:stunserver.org"}
     ],
     codec: 'vp8'
-  }   
+  };
+  
 
   const hasMountedRef = React.useRef(false);
   React.useEffect(():void => {
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
-    join()
+    if (ctx.Comm !== null && owner && ctx.VicallCli === null && props.target[owner] && props.target[owner].datas.room.id) join()
 
   },[]);
 
@@ -209,8 +228,10 @@ const Echo: React.FC<EchoProps> = (props) =>{
       };
 
       setStatus("loading")
-      const [firstName, secondName] = SortNames(owner, props.user.username);
-      cl.join(firstName+"-"+secondName,props.user.username).then(()=>{
+      console.log("join "+ props.target[owner].datas.room.id)
+      cl.join(props.target[owner].datas.room.id+"", props.user.username).then(()=>{
+      // const [firstName, secondName] = SortNames(owner, props.user.username);
+      // cl.join(firstName+"-"+secondName,props.user.username).then(()=>{
         console.log("OjClient join done")
         ctx.VicallCli = cl
         setClient(cl)
@@ -219,7 +240,6 @@ const Echo: React.FC<EchoProps> = (props) =>{
         leaving()
         setStatus("fail")
       })
-      console.log("session: "+ firstName+"-"+secondName)
     }
   }
 
@@ -357,88 +377,109 @@ const Echo: React.FC<EchoProps> = (props) =>{
 
   const toggleMenu = () =>{
     setShowMenu(!showMenu)
+    
+    if (showMessage) toggleMessage()
+  }
+
+  const toggleMessage = () =>{
+    if (!showMessage) props.setUpdated(new Date())
+    setShowMessage(!showMessage)
+
+    if (showMenu) toggleMenu()
   }
 
   return (<>
-    <div className={`${client ? "" : "hidden"} relative min-h-screen max-h-screen overflow-hidden`}>
-      <div className="absolute top-0 left-0 flex flex-row z-20 p-2">
-        <button onClick={toggleMenu} className="bg-opacity-0 hover:bg-opacity-20 bg-blue-500 font-bold py-2 px-2 rounded-full"><MdMenu size={24} /></button>
-      </div>
-      <div className="absolute top-0 z-10 w-full">
-        <Transition
-        show={showMenu}
-        enter="transition-all duration-300 transform ease-in-out"
-        enterFrom="-translate-y-full opacity-0"
-        enterTo="translate-y-0 opacity-100"
-        leave="transition-all duration-300 transform ease-in-out"
-        leaveFrom="translate-y-0 opacity-100"
-        leaveTo="-translate-y-full opacity-0"
-        >
-          <div className='flex flex-row flex-wrap gap-2 justify-center p-2 mx-8'>
-            {/* <button onClick={join} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Join</button> */}
-            <button onClick={()=>publish(true)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStream?"Unpublish":"Publish"}</button>
-            <button onClick={()=>publish(false)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStreamSs?"Stop sharing":"Share screen"}</button>
-            <button onClick={leave} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Leave</button>
-          </div>
-        </Transition>
-      </div>
-      
-      <div ref={divRemote} className="flex items-center justify-center flex-wrap gap-2 w-full min-h-screen max-h-screen overflow-auto">
-        <div className={`${localStream? "" :"hidden"} flex flex-col flex-1 min-w-[260px] max-w-md`}>
-          <div className="relative flex flex-wrap gap-2 justify-end">
-            <div className="absolute top-0 flex flex-row gap-2 z-10">
-              <button onClick={unpublish} className="bg-opacity-0 hover:bg-opacity-20 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
-            </div>
-          </div>
-          <video
-            ref={elWebcam}
-            id="local-video"
-            style={{
-              backgroundColor: "black"
-            }}
-            controls={false}
-            className="rounded-lg"
-            defaultChecked />
-          
+    <div className={`${client ? "" : "hidden"} relative min-h-screen max-h-screen overflow-hidden flex flex-row`}>
+      <div className='flex-1 relative min-w-[300px]'>
+        <div className="absolute top-0 left-0 flex flex-row z-20 p-2">
+          <button onClick={toggleMenu} className="bg-opacity-0 hover:bg-opacity-20 bg-blue-500 font-bold py-2 px-2 rounded-full"><MdMenu size={24} /></button>
         </div>
-        <div className={`${localStreamSs? "visible" :"hidden invisible"} flex flex-col flex-1 min-w-[260px] max-w-md justify-between`}>
-          <div className="relative flex flex-wrap gap-2 justify-end">
-            <div className="absolute top-0 flex flex-row gap-2 z-10">
-              <button onClick={unpublishScreenSharing} className="bg-opacity-0 hover:bg-opacity-20 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
-            </div>
-          </div>
-          <video
-            ref={elSharedScreen}
-            id="local-sscreen"
-            style={{
-              backgroundColor: "black"
-            }}
-            controls={false} 
-            className="rounded-lg"
-            defaultChecked/>
-          
-        </div>
-      </div>
-      
-      {localStream && <div className="absolute bottom-0 z-10 w-full">
-        <Transition
+        <div className="absolute top-0 z-10 w-full">
+          <Transition
           show={showMenu}
           enter="transition-all duration-300 transform ease-in-out"
-          enterFrom="translate-y-full opacity-0"
+          enterFrom="-translate-y-full opacity-0"
           enterTo="translate-y-0 opacity-100"
           leave="transition-all duration-300 transform ease-in-out"
           leaveFrom="translate-y-0 opacity-100"
-          leaveTo="translate-y-full opacity-0"
-        >
-          <div className='flex flex-row flex-wrap gap-2 justify-center p-2 mb-4'>
-            <button onClick={controlLocalVideo} className={`${mutedWebcamVideo? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500 hover:bg-gray-700"} text-white font-bold py-2 px-4 rounded`}>Visual</button>
-            <button onClick={controlLocalAudio} className={`${mutedWebcamAudio? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500 hover:bg-gray-700"} text-white font-bold py-2 px-4 rounded`}>Audio</button>
-          </div> 
-        </Transition>
-      </div>}
+          leaveTo="-translate-y-full opacity-0"
+          >
+            <div className='flex flex-row flex-wrap gap-2 justify-center p-2 mx-8'>
+              {/* <button onClick={join} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Join</button> */}
+              <button onClick={()=>publish(true)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStream?"Unpublish":"Publish"}</button>
+              <button onClick={()=>publish(false)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStreamSs?"Stop sharing":"Share screen"}</button>
+              <button onClick={leave} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Leave</button>
+            </div>
+          </Transition>
+        </div>
+        
+        <div ref={divRemote} className="flex items-center justify-center flex-wrap gap-2 w-full min-h-screen max-h-screen overflow-auto">
+          <div className={`${localStream? "" :"hidden"} flex flex-col flex-1 min-w-[260px] max-w-md`}>
+            <div className="relative flex flex-wrap gap-2 justify-end">
+              <div className="absolute top-0 flex flex-row gap-2 z-10">
+                <button onClick={unpublish} className="bg-opacity-0 hover:bg-opacity-20 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
+              </div>
+            </div>
+            <video
+              ref={elWebcam}
+              id="local-video"
+              style={{
+                backgroundColor: "black"
+              }}
+              controls={false}
+              className="rounded-lg"
+              defaultChecked />
+            
+          </div>
+          <div className={`${localStreamSs? "visible" :"hidden invisible"} flex flex-col flex-1 min-w-[260px] max-w-md justify-between`}>
+            <div className="relative flex flex-wrap gap-2 justify-end">
+              <div className="absolute top-0 flex flex-row gap-2 z-10">
+                <button onClick={unpublishScreenSharing} className="bg-opacity-0 hover:bg-opacity-20 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
+              </div>
+            </div>
+            <video
+              ref={elSharedScreen}
+              id="local-sscreen"
+              style={{
+                backgroundColor: "black"
+              }}
+              controls={false} 
+              className="rounded-lg"
+              defaultChecked/>
+            
+          </div>
+        </div>
+        
+        {localStream && <div className="absolute bottom-0 z-10 w-full">
+          <Transition
+            show={showMenu}
+            enter="transition-all duration-300 transform ease-in-out"
+            enterFrom="translate-y-full opacity-0"
+            enterTo="translate-y-0 opacity-100"
+            leave="transition-all duration-300 transform ease-in-out"
+            leaveFrom="translate-y-0 opacity-100"
+            leaveTo="translate-y-full opacity-0"
+          >
+            <div className='flex flex-row flex-wrap gap-2 justify-center p-2 mb-4'>
+              <button onClick={controlLocalVideo} className={`${mutedWebcamVideo? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500 hover:bg-gray-700"} text-white font-bold py-2 px-4 rounded`}>Visual</button>
+              <button onClick={controlLocalAudio} className={`${mutedWebcamAudio? "bg-blue-500 hover:bg-blue-700" : "bg-gray-500 hover:bg-gray-700"} text-white font-bold py-2 px-4 rounded`}>Audio</button>
+            </div> 
+          </Transition>
+        </div>}
+      </div>
+
+      <div className="absolute top-0 right-0 flex flex-row z-30 p-2">
+        <button onClick={toggleMessage} className="bg-opacity-0 hover:bg-opacity-30 bg-blue-500 font-bold py-2 px-2 rounded-full"><MdMessage size={24} /></button>
+      </div>
+      <div className={`${showMessage? "": "hidden"} md:w-1/2 md:min-w-[300px] md:max-w-md absolute w-full min-w-full max-w-full h-full max-h-full flex flex-col justify-between right-0 z-20`}>
+        {props.children}
+      </div>
     </div>
-    {status === "fail" ? <div>FAIL TO CONNECT</div> :
-    status === "loading" ? <div>Loading...</div> : null}
+    {
+      props.isLoading || status === "loading" || client === null ? <Loading /> :
+      props.error? <p>Error:  {(props.error as { message: string }).message}</p> :
+      status === "fail" ? <div>FAIL TO CONNECT</div> : null
+    }
   </>
   );
 }

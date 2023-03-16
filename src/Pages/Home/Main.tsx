@@ -156,7 +156,7 @@ const Main: React.FC<Props> = (props) => {
   }
 
   const updateMessagePage = (u:string,t:string, st:string) => {
-    if (getParam('usr') === u && window.location.pathname === '/message') {
+    if (getParam('usr') === u && (window.location.pathname === '/message' || window.location.pathname === '/echo')) {
       setNavTitle(t)
       setNavSubTitle(st)
     }
@@ -250,8 +250,12 @@ const Main: React.FC<Props> = (props) => {
 
   switch (props.page) {
     case 'echo':
+      let kn = contact[getParam('usr')]?.datas?.room?.id ?? "";
       return (
-        <Echo target={contact} user={userself}/>
+        <Echo key={isWsConnected+navTitle+kn} isLoading={isLoading} error={error} target={contact} user={userself} setUpdated={setUpdated}>
+          <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} target={contact}/>
+          <ChatInput user={userself} target={contact} setUpdated={setUpdated}/>
+        </Echo>
       )
     case 'message':
       return (

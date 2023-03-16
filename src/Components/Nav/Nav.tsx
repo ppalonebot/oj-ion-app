@@ -8,6 +8,7 @@ import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 // import { myContext } from "../../lib/Context";
 import { ContactDict } from "../../Entity/User/Contact_model";
+import Loading from "../Loading";
 
 type Props = React.PropsWithChildren<{ 
   user: User;
@@ -150,61 +151,59 @@ const Nav: React.FC<Props> = (props) => {
 
   return (
     <>
-    <main className={show ? 'space-toggle' : ''}>
-      <header className={`header ${show ? 'space-toggle' : ''}`}>
-        <div className="flex gap-4 max-h-full" >
-          <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdMenuOpen /> : <MdMenu />}</div>
-          <div>
-            <div className='flex flex-row items-center'>
-              {props.subtitle && <i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-2 md:hidden`}><MdLens size={8}/></i>}
-              <span className="text-esecondary-color font-semibold text-lg text-ellipsis truncate">{props.title}</span>
-            </div>
-            {props.subtitle && <p className="h-3 hidden md:block">
-              <span className="text-xs flex flex-row items-center absolute bottom-1 text-slate-800"><i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-1`}><MdLens size={8}/></i> {props.subtitle}</span>
-            </p>}
-          </div>
-        </div>
-        <div className="absolute right-0 h-8 md:h-auto bg-eprimary-color flex items-center justify-center bg-opacity-80">
-          <MyMenu links={links}/>
-        </div>
-      </header>
-      <aside className={`sidebar ${show ? 'show' : ''}`}>
-        <nav className='nav'>
-          <div>
-            
-          {
-            props.isLoading? <p>Loading...</p> :
-            props.error? <p>Error:  {(props.error as { message: string }).message}</p> :
-            
-            <Link to={process.env.PUBLIC_URL+"/profile"} className="nav-logo">
-              <i className="nav-logo-icon">
-                <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(props.user.avatar?props.user.avatar:"/image/404notfound")} alt={props.user.username}/>
-              </i>
-              <span className="nav-logo-name">{props.user.name}</span>
-            </Link>
-          }
-          
-            <div className='nav-list'>
-              {
-                pages.map((v,i)=>{
-                  return (
-                    <Link key={i} className={`nav-link ${props.index===v.key ? "active" : ""}`} to={v.link}>
-                      <i className="nav-link-icon">{v.ico}</i><span className="nav-link-name">{v.text}</span>
-                    </Link>
-                  );
-                })
-              }
-            </div>
-            <div className='nav-list' data-count={chCount}>
-              {userElements}
+    {
+      props.isLoading? <Loading/> :
+      props.error? <p>Error:  {(props.error as { message: string }).message}</p> :
+      <main className={show ? 'space-toggle' : ''}>
+        <header className={`header ${show ? 'space-toggle' : ''}`}>
+          <div className="flex gap-4 max-h-full" >
+            <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdMenuOpen /> : <MdMenu />}</div>
+            <div>
+              <div className='flex flex-row items-center'>
+                {props.subtitle && <i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-2 md:hidden`}><MdLens size={8}/></i>}
+                <span className="text-esecondary-color font-semibold text-lg text-ellipsis truncate">{props.title}</span>
+              </div>
+              {props.subtitle && <p className="h-3 hidden md:block">
+                <span className="text-xs flex flex-row items-center absolute bottom-1 text-slate-800"><i className={`${props.subtitle !== "online"? "text-orange-700":"text-green-400"} mr-1`}><MdLens size={8}/></i> {props.subtitle}</span>
+              </p>}
             </div>
           </div>
-        </nav>
-      </aside>
-      <div className='sidebar-content'>
-        {props.children}
-      </div>
-    </main>        
+          <div className="absolute right-0 h-8 md:h-auto bg-eprimary-color flex items-center justify-center bg-opacity-80">
+            <MyMenu links={links}/>
+          </div>
+        </header>
+        <aside className={`sidebar ${show ? 'show' : ''}`}>
+          <nav className='nav'>
+            <div>
+              <Link to={process.env.PUBLIC_URL+"/profile"} className="nav-logo">
+                <i className="nav-logo-icon">
+                  <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(props.user.avatar?props.user.avatar:"/image/404notfound")} alt={props.user.username}/>
+                </i>
+                <span className="nav-logo-name">{props.user.name}</span>
+              </Link>
+            
+              <div className='nav-list'>
+                {
+                  pages.map((v,i)=>{
+                    return (
+                      <Link key={i} className={`nav-link ${props.index===v.key ? "active" : ""}`} to={v.link}>
+                        <i className="nav-link-icon">{v.ico}</i><span className="nav-link-name">{v.text}</span>
+                      </Link>
+                    );
+                  })
+                }
+              </div>
+              <div className='nav-list' data-count={chCount}>
+                {userElements}
+              </div>
+            </div>
+          </nav>
+        </aside>
+        <div className='sidebar-content'>
+          {props.children}
+        </div>
+      </main>
+    }        
     </>
   );
 
