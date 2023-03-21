@@ -129,7 +129,7 @@ const Nav: React.FC<Props> = (props) => {
       <div key={user.username} className="flex flex-row items-center">
         <Link className={`w-full nav-link ${getParam('usr') === user.username && window.location.pathname === '/message' ? "active" : ""}`} to={process.env.PUBLIC_URL+"/message?usr="+user.username}>
           <i className="nav-link-icon">
-            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={API_URL+(user.avatar !== "" ?user.avatar:'/default-avatar.jpg')} alt={user.username}/>
+            <Avatar className={"h-10 w-10 rounded-full object-cover"} src={(user.avatar !== "" ?API_URL+user.avatar:process.env.PUBLIC_URL+'/default-avatar.jpg')} alt={user.username}/>
             {user.datas.wsStatus === "online" && <p className={`absolute text-green-400 bottom-1 left-9 ${!show?"":"md:hidden"}`}><MdLens size={10}/></p>}
           </i>
           <span className="nav-link-name">{user.name}</span>

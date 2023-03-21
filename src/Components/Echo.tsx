@@ -51,12 +51,12 @@ const Echo: React.FC<EchoProps> = (props) =>{
   const config : Configuration = {
     iceServers: [
       {urls: "stun:stun.l.google.com:19302"},
-      {urls: "stun:stun1.l.google.com:19302"},
-      {urls: "stun:stun2.l.google.com:19302"},
-      {urls: "stun:stun3.l.google.com:19302"},
-      {urls: "stun:stun4.l.google.com:19302"},
-      {urls: "stun:stun.stunprotocol.org"},
-      {urls: "stun:stun.voipbuster.com"},
+      // {urls: "stun:stun1.l.google.com:19302"},
+      // {urls: "stun:stun2.l.google.com:19302"},
+      // {urls: "stun:stun3.l.google.com:19302"},
+      // {urls: "stun:stun4.l.google.com:19302"},
+      // {urls: "stun:stun.stunprotocol.org"},
+      // {urls: "stun:stun.voipbuster.com"},
       {urls: "stun:stunserver.org"}
     ],
     codec: 'vp8'
@@ -84,13 +84,13 @@ const Echo: React.FC<EchoProps> = (props) =>{
     
     const bg = document.createElement("div");
     // bg.style.backgroundImage = "url('"+process.env.PUBLIC_URL+"/default-avatar.jpg"+"')";
-    bg.style.backgroundColor = "black"
+    bg.style.backgroundColor = "black";
     bg.style.backgroundSize = "cover";
     bg.style.backgroundPosition = "center";
     bg.style.display = "none";
     bg.style.width = "100%";
     bg.style.height = "0";
-    bg.style.paddingBottom = "60%"//"56.25%"; // 16:9 aspect ratio
+    bg.style.paddingBottom = "60%";//"56.25%"; // 16:9 aspect ratio
     bg.className = "rounded-lg";
 
     const controlsElement = document.createElement("div");
