@@ -211,7 +211,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   }
   return (
     <>
-    <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full">
+    <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full bg-black bg-opacity-75">
       <div className="max-w-3xl w-full">
         <div className='h-10 w-full'>
         {!btnLoad && props.target[owner] && props.target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}
