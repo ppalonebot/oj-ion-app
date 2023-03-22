@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import ResetPassword from './Pages/ResetPassword/pgResetPassword';
 import UserRegister from './Pages/Register/pgRegister';
 import PageNotFound from './Pages/404/pg404NotFound';
+import PageServiceUnavailable from './Pages/503/pg503ServiceUnavailable';
 
 const App: FC = () => {
   const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App: FC = () => {
           <Route path={process.env.PUBLIC_URL+'/login'} element={<Login usr={''} pwd={''}/>}/>
           <Route path={process.env.PUBLIC_URL+'/register'} element={<UserRegister />}/>
           <Route path={process.env.PUBLIC_URL+'/resetpwd'} element={<ResetPassword/>}/>
+          <Route path={process.env.PUBLIC_URL+'/503'} element={<PageServiceUnavailable/>}/>
           <Route path={process.env.PUBLIC_URL+'/404'} element={<PageNotFound/>}/>
           <Route path={process.env.PUBLIC_URL+'/app'} element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/404" replace />} />

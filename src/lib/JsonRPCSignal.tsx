@@ -10,6 +10,7 @@ const initialReconnectDelay = 1000
 const maxReconnectDelay = 16000
 
 class JsonRPCSignal implements Signal {
+  errorCount: number;
   socket: WebSocket;
   onnegotiate?: (jsep: RTCSessionDescriptionInit) => void;
   ontrickle?: (trickle: Trickle) => void;
@@ -24,7 +25,7 @@ class JsonRPCSignal implements Signal {
   setContact : (contactDict: ContactDict) => void
   updateMessagePage : (username:string,navTitle:string, subNavTitle:string) => void
   updateChatPage: () => void
-
+  wsErrorHandle: () => void
   constructor(uri: string, 
     currentUser:User,
     isWsConnected: boolean, 
@@ -36,12 +37,18 @@ class JsonRPCSignal implements Signal {
     setContact : (contact: ContactDict) => void,
     updateMessagePage : (username:string,navTitle:string, subNavTitle:string) => void,
     updateChatPage: () => void,
+    wsErrorHandle: () => void,
   ) {
-
+    this.errorCount = 0
     this.socket = new WebSocket(uri);
     this.socket.addEventListener('open', this.onWebsocketOpen);
     this.socket.addEventListener('error', (e) => {
-      console.log(e)
+      if (this.errorCount > 20){
+        this.wsErrorHandle()
+      } else {
+        console.log(e)
+        this.errorCount += 1
+      }
     });
     this.socket.addEventListener('close', this.onWebsocketClose);
     this.socket.addEventListener('message', async (event) => {
@@ -102,6 +109,7 @@ class JsonRPCSignal implements Signal {
     this.setContact = setContact
     this.updateMessagePage = updateMessagePage
     this.updateChatPage = updateChatPage
+    this.wsErrorHandle = wsErrorHandle
   }
 
   handleRoomJoined = (msg:any) => {
@@ -346,7 +354,7 @@ class JsonRPCSignal implements Signal {
 
     setTimeout(() => {
       if (this.currentReconnectDelay < maxReconnectDelay) {
-        this.currentReconnectDelay = this.currentReconnectDelay*2
+        this.setCurrentReconnectDelay(this.currentReconnectDelay+initialReconnectDelay)
       }
       if (this.currentReconnectDelay > 1000*64){
         this.setCurrentReconnectDelay(1000*64)

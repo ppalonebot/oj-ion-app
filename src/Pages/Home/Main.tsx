@@ -17,6 +17,7 @@ import FriendReqs from "./FriendReqs";
 import ChatInput from "../../Components/ChatInput";
 import JsonRPCSignal from "../../lib/JsonRPCSignal";
 import Echo from "../../Components/Echo";
+import { useNavigate } from "react-router-dom";
 
 type Props = {
   user:User
@@ -27,6 +28,7 @@ const initialReconnectDelay = 1000
 const maxReconnectDelay = 16000
 
 const Main: React.FC<Props> = (props) => {
+  const navigate = useNavigate()
   const ctx = React.useContext(myContext);
   const [navTitle,setNavTitle] = React.useState<string>("Home")
   const [navSubTitle,setNavSubTitle] = React.useState<string>("")
@@ -111,6 +113,7 @@ const Main: React.FC<Props> = (props) => {
             setContact,
             updateMessagePage,
             updateChatPage,
+            wsErrorHandle,
           )
           ctx.SetComm(ctx.Comm)
 				}
@@ -121,7 +124,7 @@ const Main: React.FC<Props> = (props) => {
 			},
 			onError: (error, v, ctx) => {
         setWsstatus("error")
-				console.log(error)
+				wsErrorHandle()
 			}
 		}
 	)
@@ -186,6 +189,10 @@ const Main: React.FC<Props> = (props) => {
       setWsstatus('loading')
       getwebsockettoken(props.user.uid)
     }
+  }
+
+  const wsErrorHandle = () => {
+    navigate('/503',{ replace: true });
   }
 
   const getParam = (key:string) =>{

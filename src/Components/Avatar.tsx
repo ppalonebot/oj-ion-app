@@ -8,7 +8,7 @@ type Props = {
 }
 
 const Avatar: React.FC<Props> = (props) => {
-  const [visibleAva, setVisibleAva] = React.useState(true);
+  const [visibleAva, setVisibleAva] = React.useState<boolean>(!props.src.includes("/image/404notfound"));
   
   const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setVisibleAva(false);

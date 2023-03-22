@@ -65,7 +65,7 @@ const FriendReqs: FC<Props> = (props) => {
       refetchIntervalInBackground: false,
       refetchInterval: deltaWaitSec * 1000,
       cacheTime: deltaWaitSec * 1000,
-      enabled: deltaSec >= deltaWaitSec,
+      enabled: true,//deltaSec >= deltaWaitSec,
       onError(err) {
         setStatus("error")
         console.log("error")
