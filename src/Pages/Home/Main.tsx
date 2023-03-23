@@ -124,7 +124,7 @@ const Main: React.FC<Props> = (props) => {
 			},
 			onError: (error, v, ctx) => {
         setWsstatus("error")
-				wsErrorHandle()
+        setTimeout(wsErrorHandle,14000)
 			}
 		}
 	)
