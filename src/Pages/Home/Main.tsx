@@ -259,7 +259,7 @@ const Main: React.FC<Props> = (props) => {
     case 'echo':
       let kn = contact[getParam('usr')]?.datas?.room?.id ?? "";
       return (
-        <Echo key={isWsConnected+navTitle+kn} isLoading={isLoading} error={error} target={contact} user={userself} setUpdated={setUpdated}>
+        <Echo key={kn} isLoading={isLoading} error={error} target={contact} user={userself} setUpdated={setUpdated}>
           <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} target={contact}/>
           <ChatInput user={userself} target={contact} setUpdated={setUpdated}/>
         </Echo>

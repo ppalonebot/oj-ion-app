@@ -24,7 +24,7 @@ const Home: React.FC<Props> = (props) => {
 
       <ConfirmRegistration user={userself} onValid={RegistrationConfirmed}/> : 
 
-      <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
+      <div className='p-4 min-w-[100vw] min-h-[100vh] flex flex-col justify-start items-center'>
         <h1 className='text-center text-4xl'>PESATU</h1>
         <p className='font-signature text-center text-xl'>Bringing people and technology together</p>
         <div className='p-8 w-full flex justify-center items-center gap-4 max-w-lg'>

@@ -43,6 +43,9 @@ const CttStatus: React.FC<Props> = (props) => {
         }
         else if (data.result.to){
           setContact(data.result as Contact)
+          if ((data.result as Contact).status === STATUS.Accepted &&  ctx.FriendReqsCount > 0){
+            ctx.FriendReqsCount -= 1
+          }
         }
         else{
           if (data.error){

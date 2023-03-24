@@ -1,4 +1,4 @@
-import React from 'react'
+import * as React from 'react'
 import OjClient from '../lib/OjClient';
 import { LocalStream, RemoteStream } from 'ion-sdk-js';
 import { Configuration, ActiveLayer} from 'ion-sdk-js/lib/client';
@@ -27,7 +27,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
   const elWebcam = React.useRef<HTMLVideoElement>(null);
   const elSharedScreen = React.useRef<HTMLVideoElement>(null);
   const divRemote = React.useRef<HTMLDivElement>(null);
-  // const [remoteVideoIsMuted, setRemoteVideoIsMuted] = React.useState<boolean>(true)
+  const [remoteVideoIsMuted, setRemoteVideoIsMuted] = React.useState<boolean>(true)
   const [mutedWebcamVideo, setMutedWebcamVideo] = React.useState<boolean>(true)
   const [mutedWebcamAudio, setMutedWebcamAudio] = React.useState<boolean>(true)
 
@@ -35,19 +35,10 @@ const Echo: React.FC<EchoProps> = (props) =>{
   const [localStreamSs, setLocalStreamSs] = React.useState<LocalStream | null>(null)
 
   const [client, setClient] = React.useState<OjClient | null>(null)
-  const streams : Record<string, any> = {};
+  const [streams, setStreams] = React.useState<Record<string, any>>({});
   const [showMenu, setShowMenu] = React.useState<boolean>(true)
   const [showMessage, setShowMessage] = React.useState<boolean>(false)
   const [status, setStatus] = React.useState<string>("idle")
-
-  // const config : Configuration = {
-  //   iceServers: [
-  //     {
-  //       urls: "stun:stun.l.google.com:19302",
-  //     },
-  //   ],
-  //   codec: 'vp8'
-  // }   
   const config : Configuration = {
     iceServers: [
       {urls: "stun:stun.l.google.com:19302"},
@@ -55,7 +46,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
       // {urls: "stun:stun2.l.google.com:19302"},
       // {urls: "stun:stun3.l.google.com:19302"},
       // {urls: "stun:stun4.l.google.com:19302"},
-      // {urls: "stun:stun.stunprotocol.org"},
+      {urls: "stun:stun.stunprotocol.org"},
       // {urls: "stun:stun.voipbuster.com"},
       {urls: "stun:stunserver.org"}
     ],
@@ -74,6 +65,27 @@ const Echo: React.FC<EchoProps> = (props) =>{
 
   },[]);
 
+  const toggleMuteAllPeers = () => {
+    console.log(streams)
+    for (const key in streams) {
+      
+      const { videoElement, control} = streams[key];
+      if (videoElement) {
+        (videoElement as HTMLVideoElement).muted = !remoteVideoIsMuted
+        // find button with class mutebtn and change its innerHTML (control as HTMLDivElement)
+        // Find the mute button in the control div by class name
+        const muteButton = (control as HTMLDivElement)?.querySelector<HTMLButtonElement>(".mutebtn");
+        if (muteButton) {
+          console.log("Update the mute button's innerHTML based on the remoteVideoIsMuted value")
+          muteButton.innerHTML = remoteVideoIsMuted ? '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>' : 
+          '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>';
+        }
+      }
+    }
+
+    setRemoteVideoIsMuted(!remoteVideoIsMuted)
+  }
+
   const createVideoElement = (stream: RemoteStream) => {
     // Create a video element for rendering the stream
     const remoteVideo = document.createElement("video");
@@ -81,6 +93,9 @@ const Echo: React.FC<EchoProps> = (props) =>{
     // remoteVideo.controls = true;
     remoteVideo.autoplay = true;
     remoteVideo.className = "rounded-lg";
+    remoteVideo.muted = true;
+    remoteVideo.style.maxHeight = "350px"
+    remoteVideo.style.backgroundColor = "black"
     
     const bg = document.createElement("div");
     // bg.style.backgroundImage = "url('"+process.env.PUBLIC_URL+"/default-avatar.jpg"+"')";
@@ -97,14 +112,14 @@ const Echo: React.FC<EchoProps> = (props) =>{
     controlsElement.className = "block absolute bottom-0 right-0 p1"
 
     const muteButton = document.createElement("button");
-    muteButton.innerHTML = '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>'
+    muteButton.innerHTML = '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>'
     muteButton.onclick = (event) => {
       event.stopPropagation();
       remoteVideo.muted = !remoteVideo.muted;
       muteButton.innerHTML = !remoteVideo.muted ? '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>' : 
       '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>';
     };
-    muteButton.className = "bg-opacity-10 hover:bg-opacity-40 bg-blue-500 font-bold py-2 px-2 rounded";
+    muteButton.className = "mutebtn bg-opacity-10 hover:bg-opacity-40 bg-blue-500 font-bold py-2 px-2 rounded";
     controlsElement.appendChild(muteButton);
     
 
@@ -118,7 +133,8 @@ const Echo: React.FC<EchoProps> = (props) =>{
     controlsElement.appendChild(maximizeButton);
 
     const container = document.createElement("div");
-    container.className = "relative flex flex-col gap-2 flex-1 min-w-[260px] max-w-md justify-between border rounded-lg border-dashed p-[1px]";
+    container.className = "relative flex flex-col gap-2 flex-1 min-w-[260px] max-w-md justify-between rounded-lg";
+    // container.className = "relative flex flex-col gap-2 flex-1 min-w-[260px] max-w-md justify-between rounded-lg border border-dashed p-[1px]";
     container.appendChild(bg);
     container.appendChild(remoteVideo);
     container.appendChild(controlsElement)
@@ -127,6 +143,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
   
     // Save the stream, video element, and title element in the map.
     streams[stream.id] = { stream, videoElement: remoteVideo, background:bg, control: controlsElement};
+    setStreams(streams)
     console.log("add stream id: " + stream.id);
   }
 
@@ -169,7 +186,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
       
         if (!streams[stream.id]) {
           createVideoElement(stream);
-        }
+        } 
       
         // When this stream removes a track, assume
         // that its going away and remove it.
@@ -221,9 +238,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
       setStatus("loading")
       console.log("join "+ props.target[owner].datas.room.id)
       cl.join(props.target[owner].datas.room.id+"", props.user.username).then(()=>{
-      // const [firstName, secondName] = SortNames(owner, props.user.username);
-      // cl.join(firstName+"-"+secondName,props.user.username).then(()=>{
-        console.log("OjClient join done")
+        console.log("Client join done")
         ctx.VicallCli = cl
         setClient(cl)
         setStatus("connected")
@@ -318,19 +333,6 @@ const Echo: React.FC<EchoProps> = (props) =>{
         ctx.WebCam = media
       }).catch(console.error);
     }
-    // else if (localStream){
-    //   LocalStream.getDisplayMedia({
-    //     resolution: 'hd',
-    //     video: true,
-    //     codec: "vp8"
-    //   }).then((media) => {
-    //     // Replace old video track with new video track
-    //     const [videoTrack] = media.getVideoTracks();
-    //     const [oldVideoTrack] = localStream.getVideoTracks();
-    //     localStream.removeTrack(oldVideoTrack);
-    //     localStream.addTrack(videoTrack);
-    //   }).catch(console.error);
-    // }
     else{
       if (localStreamSs) {
         unpublishScreenSharing()
@@ -348,7 +350,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
         elSharedScreen!.current!.srcObject = media;
         elSharedScreen!.current!.autoplay = true;
         // elSharedScreen!.current!.controls = true;
-        // localSharedScreen!.current!.muted = false;
+        elSharedScreen!.current!.muted = false;
         client?.publish(media);
         ctx.SharedScreen = media
       }).catch(console.error);
@@ -403,10 +405,10 @@ const Echo: React.FC<EchoProps> = (props) =>{
   return (<>
     <div className={`${client ? "" : "hidden"} relative min-h-screen max-h-screen overflow-hidden flex flex-row`}>
       <div className='flex-1 relative min-w-[300px]'>
-        <div className="absolute top-0 left-0 flex flex-row z-20 p-2">
+        <div className="absolute top-0 left-0 flex flex-row z-30 p-2">
           <button onClick={toggleMenu} className="bg-opacity-0 hover:bg-opacity-20 bg-blue-500 font-bold py-2 px-2 rounded-full"><MdMenu size={24} /></button>
         </div>
-        <div className="absolute top-0 z-10 w-full">
+        <div className="absolute top-0 z-20 w-full">
           <Transition
           show={showMenu}
           enter="transition-all duration-300 transform ease-in-out"
@@ -419,6 +421,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
             <div className='flex flex-row flex-wrap gap-2 justify-center p-2 mx-8'>
               {/* <button onClick={join} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Join</button> */}
               <button onClick={()=>publish(true)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStream?"Unpublish":"Publish"}</button>
+              <button onClick={toggleMuteAllPeers} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{remoteVideoIsMuted?"Unmute All":"Mute All"}</button>
               <button onClick={()=>publish(false)} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">{localStreamSs?"Stop sharing":"Share screen"}</button>
               <button onClick={leave} className=" bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Leave</button>
             </div>
@@ -435,7 +438,8 @@ const Echo: React.FC<EchoProps> = (props) =>{
               ref={elWebcam}
               id="local-video"
               style={{
-                backgroundColor: "black"
+                backgroundColor: "black",
+                maxHeight: "350px"
               }}
               controls={false}
               className="rounded-lg"
@@ -450,7 +454,8 @@ const Echo: React.FC<EchoProps> = (props) =>{
               ref={elSharedScreen}
               id="local-sscreen"
               style={{
-                backgroundColor: "black"
+                backgroundColor: "black",
+                maxHeight: "350px",
               }}
               controls={false} 
               className="rounded-lg"
@@ -459,7 +464,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
           </div>
         </div>
         
-        {localStream && <div className="absolute bottom-0 z-10 w-full">
+        {localStream && <div className="absolute bottom-0 z-20 w-full">
           <Transition
             show={showMenu}
             enter="transition-all duration-300 transform ease-in-out"
@@ -477,10 +482,10 @@ const Echo: React.FC<EchoProps> = (props) =>{
         </div>}
       </div>
 
-      <div className="absolute top-0 right-0 flex flex-row z-30 p-2">
+      <div className="absolute top-0 right-0 flex flex-row z-40 p-2">
         <button onClick={toggleMessage} className="bg-opacity-0 hover:bg-opacity-30 bg-blue-500 font-bold py-2 px-2 rounded-full"><MdMessage size={24} /></button>
       </div>
-      <div className={`${showMessage? "": "hidden"} md:w-1/2 md:min-w-[300px] md:max-w-md absolute w-full min-w-full max-w-full h-full max-h-full flex flex-col justify-between right-0 z-20`}>
+      <div className={`${showMessage? "": "hidden"} md:w-1/2 md:min-w-[300px] md:max-w-md absolute w-full min-w-full max-w-full h-full max-h-full flex flex-col justify-between right-0 z-30`}>
         {props.children}
       </div>
     </div>
