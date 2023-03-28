@@ -110,8 +110,9 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
         {dialogProps.children}
       </MyDialog>
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-        <h1 className='text-3xl p-8'>Login</h1>
-        <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
+        
+        <form onSubmit={handleSubmit} className="bg-esecondary-color shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full bg-opacity-50">
+          <p className='text-3xl p-4 mb-4 text-center'>Login</p>
           <InputForm name='username' type='text' label='Username' value={username} onChange={handleInputChange} errorMessage={errLogin.username? errLogin.username : ""} placeholder="Username or email"/>
           <InputForm name='password' type='password' label='Password' value={password} onChange={handleInputChange} errorMessage={errLogin.password? errLogin.password : ""} placeholder="Your password"/>
           <div className='w-full flex justify-end gap-2'>

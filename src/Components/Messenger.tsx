@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { User } from '../Entity/User/User_model';
 import { myContext } from '../lib/Context';
 import { MdMarkChatUnread } from 'react-icons/md';
@@ -22,7 +22,9 @@ const Messenger: React.FC<MessengerProps> = (props) => {
   const msgContainerRef = React.useRef<HTMLDivElement>(null)
   const [btnLoad,setBtnLoad] = React.useState(false)
   const divsRef = React.useRef<HTMLDivElement[]>([]);
-  const [visibleMsgs, setVisibleMsgs] = React.useState<string[]>([]);
+  const [visibleMsgs, setVisibleMsgs] = React.useState<HTMLDivElement[]>([]);
+  const [scrolToUnread, setScrolToUnread] = React.useState<string>('')
+  let intervalId: any;
   
   const hasMountedRef = React.useRef(false);
   React.useLayoutEffect(() => {
@@ -52,7 +54,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           }
           props.target[owner].datas.topMsgTimeId = ""
         } else {
-          msgContainerRef.current.scrollTop = props.target[owner].datas.scroll >= 96? 
+          msgContainerRef.current.scrollTop = props.target[owner].datas.scroll >= 92? 
             msgContainerRef.current.scrollHeight : ((msgContainerRef.current.scrollTop / (msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)) * 100) >= 90 ?  
               msgContainerRef.current.scrollHeight : ((props.target[owner].datas.height - msgContainerRef.current.scrollHeight+8)+(props.target[owner].datas.scroll/100*(msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight)))
         }
@@ -99,50 +101,64 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     return
   },[])
 
-  const handleScroll = () => {
-    if (props.target[owner] && msgContainerRef.current) {
-      let d = msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight
-      props.target[owner].datas.scroll = d === 0 ? props.target[owner].datas.scroll : (msgContainerRef.current.scrollTop / d) * 100;
+  const onCalculateScroll = (msg: string) => {
+    if (msg === 'start') {
+      if (!intervalId) {
+        intervalId = setTimeout(() => {
+          if (props.target[owner] && msgContainerRef.current) {
+            let d = msgContainerRef.current.scrollHeight - msgContainerRef.current.clientHeight
+            props.target[owner].datas.scroll = d === 0 ? props.target[owner].datas.scroll : (msgContainerRef.current.scrollTop / d) * 100;
 
-      const viewportHeight = window.innerHeight;
-      const scrollTop = window.scrollY || window.pageYOffset;
-      const viewportTop = scrollTop + 30;
-      const viewportBottom = scrollTop + viewportHeight -30;
+            const viewportHeight = window.innerHeight;
+            const scrollTop = window.scrollY || window.pageYOffset;
+            const viewportTop = scrollTop + 30;
+            const viewportBottom = scrollTop + viewportHeight -30;
+            const newVisibleDivs: HTMLDivElement[] = [];
 
-      const newVisibleDivs: string[] = [];
-
-      divsRef.current.forEach((div) => {
-        const rect = div.getBoundingClientRect();
-
-        if (rect.top >= viewportTop && rect.bottom <= viewportBottom) {
-          newVisibleDivs.push(div.dataset.id || '');
-          let id = div.getAttribute('id')
-          if (id && id.length > 0 && ctx.Comm){
-            id = id.substring(2)
-            for(let i =0 ; i< props.target[owner].datas.messages.length; i++){
-              if(props.target[owner].datas.messages[i].id === id){
-                if (props.target[owner].datas.messages[i].status === "read") continue
-                if (props.target[owner].datas.messages[i].sender?.username === props.user.username) continue
-
-                props.target[owner].datas.messages[i].status = "read"
-                let _msg = {
-                  action: 'read',
-                  message: props.target[owner].datas.messages[i].id,
-                  target: {
-                    id: props.target[owner].datas.room.id,
-                    name: props.target[owner].datas.room.name
-                  },
-                } as Message
-                ctx.Comm.notify('read',_msg)
-                break
+            divsRef.current.forEach((div) => {
+              const rect = div.getBoundingClientRect();
+              if (rect.top >= viewportTop && rect.bottom <= viewportBottom) {
+                newVisibleDivs.push(div);
+                let id = div.getAttribute('id')
+                if (id && id.length > 0 && ctx.Comm){
+                  id = id.substring(2)
+                  for(let i =0 ; i< props.target[owner].datas.messages.length; i++){
+                    if(props.target[owner].datas.messages[i].id === id){
+                      if (props.target[owner].datas.messages[i].status === "read") continue
+                      if (props.target[owner].datas.messages[i].sender?.username === props.user.username) continue
+  
+                      props.target[owner].datas.messages[i].status = "read"
+                      let _msg = {
+                        action: 'read',
+                        message: props.target[owner].datas.messages[i].id,
+                        target: {
+                          id: props.target[owner].datas.room.id,
+                          name: props.target[owner].datas.room.name
+                        },
+                      } as Message
+                      ctx.Comm.notify('read',_msg)
+                      break
+                    }
+                  }
+                }
               }
-            }
-          }
-        }
-      });
+            });
 
-      setVisibleMsgs(newVisibleDivs);
+            setVisibleMsgs(newVisibleDivs);
+          }
+          onCalculateScroll("stop")
+        }, 1000);
+      }
+    } else if (msg === 'stop') {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = undefined;
+      }
     }
+  };
+
+  const handleScroll = () => {
+    onCalculateScroll("start")
   };
 
   const loadMoreMessage = () =>{
@@ -161,12 +177,11 @@ const Messenger: React.FC<MessengerProps> = (props) => {
     }
   }
 
-  let scrolToUnread = ""
-
   const scrollToNewMsg = () =>{
     if (msgContainerRef.current) {
       const element = msgContainerRef.current.querySelector(`[data-id="${scrolToUnread}"]`) as HTMLElement
       if (element){
+        setScrolToUnread('')
         msgContainerRef.current.scrollTo({
           top: element.offsetTop,
           behavior: 'smooth'
@@ -204,11 +219,13 @@ const Messenger: React.FC<MessengerProps> = (props) => {
           </Balloon>
         </div> 
       )
-      if (scrolToUnread === "" && message.status !== "read" && message.sender!.username !== props.user.username && props.target[owner].datas.scroll < 98) {
-        scrolToUnread = message.time
+      if (scrolToUnread === "" && message.status !== "read" && message.sender!.username !== props.user.username && props.target[owner].datas.scroll < 92) {
+        setScrolToUnread(message.time)
+        break
       }
     }
   }
+
   return (
     <>
     <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full bg-black bg-opacity-75">

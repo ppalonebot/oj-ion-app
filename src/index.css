@@ -12,8 +12,10 @@
 }
 
 #root{
-  background: var(--mainbg-color);
+  /* background: var(--mainbg-color); */
   color: var(--elight-font-color);
+  width: 100%;
+  height: 100%;
 }
 
 * {

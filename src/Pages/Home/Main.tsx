@@ -176,7 +176,7 @@ const Main: React.FC<Props> = (props) => {
       const fiveMinutesEarlier = new Date(currentDate.getTime() - (6 * 60 * 1000));
       const p = isNaN(parseInt(getParam("p") ?? "1")) ? 1 : parseInt(getParam("p") ?? "1");
       ctx.ChatsLastUpdate[p] = fiveMinutesEarlier
-      if (window.location.pathname === '/' && p === 1){
+      if ((window.location.pathname === '/' || window.location.pathname === '/message') && p === 1){
         setUpdatedChats(currentDate)
       }
       clrTO()
@@ -258,18 +258,20 @@ const Main: React.FC<Props> = (props) => {
   switch (props.page) {
     case 'echo':
       let kn = contact[getParam('usr')]?.datas?.room?.id ?? "";
-      return (
-        <Echo key={kn} isLoading={isLoading} error={error} target={contact} user={userself} setUpdated={setUpdated}>
+      return (<Echo key={kn} isLoading={isLoading} error={error} target={contact} user={userself} setUpdated={setUpdated}>
           <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} target={contact}/>
           <ChatInput user={userself} target={contact} setUpdated={setUpdated}/>
-        </Echo>
-      )
+        </Echo>)
     case 'message':
-      return (
-        <Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} subtitle={navSubTitle} target={contact}>
-          <div className="h-full max-h-full flex flex-col justify-between">
-            <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
-            <ChatInput key={navTitle} user={userself} target={contact} setUpdated={setUpdated}/>
+      return (<Nav isLoading={isLoading} error={error} user={userself} logout={logout} index={-3} title={navTitle} subtitle={navSubTitle} target={contact}>
+          <div className="flex flex-row h-full max-h-full">
+            <div className="h-full max-h-full flex flex-col justify-between md:w-1/2 w-full">
+              <Messenger key={isWsConnected+getParam('usr')+updated} user={userself} setNavTitle={setNavTitle} setNavSubTitle={setNavSubTitle} target={contact}/>
+              <ChatInput key={navTitle} user={userself} target={contact} setUpdated={setUpdated}/>
+            </div>
+            <div className="h-full max-h-full md:flex w-1/2 hidden">
+              <Chats key={window.location.search+updatedChats} user={userself} setNavTitle={setNavTitle} />
+            </div>
           </div>
         </Nav>);
     case 'profile':
@@ -306,8 +308,7 @@ const Main: React.FC<Props> = (props) => {
             <Chats key={window.location.search+updatedChats} user={userself} setNavTitle={setNavTitle} />
             </>
           }
-        </Nav>
-      );
+        </Nav>)
   }
 };
 

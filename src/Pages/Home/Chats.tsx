@@ -180,7 +180,7 @@ const Chats: FC<Props> = (props) => {
     <>
     <LoadingBar loading={status==='loading'} />
     <FriendReqsChecker uid={props.user.uid} />
-    <div className='flex flex-col rounded-md sm:bg-esecondary-color m-2 p-4'>
+    <div className='flex flex-col rounded-md bg-esecondary-color m-2 p-4 bg-opacity-50'>
       {
         (userChats.length > 0) &&<p className='text-center mb-4'>Last Messages</p>
       }
@@ -201,7 +201,8 @@ const Chats: FC<Props> = (props) => {
         loading={statuss==='loading'}
       />
     }
-    </div></>
+    </div>
+    </>
   );
 };
 

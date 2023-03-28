@@ -172,11 +172,11 @@ const ProfileEdit: React.FC<Props> = (props) => {
         <p>{dialogMessage}</p>
       </MyDialog>      
       <div className='p-4 w-full flex flex-col justify-start items-center'>
-        <h1 className='text-3xl p-8'>Edit Profile</h1>
         {profileData == null && <p>Loading...</p>}
         {
         profileData != null && 
-        <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
+        <form onSubmit={handleSubmit} className="bg-esecondary-color shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full bg-opacity-50">
+          <p className='text-3xl pb-8 pt-4 text-center'>Edit Profile</p>
           <InputForm name='name' type='text' label='Your Name' value={profileData.name} onChange={handleInputChange} errorMessage={errprofile.name? errprofile.name : ""} placeholder="ex: Susan Lee"/>
           <InputForm name='email' type='email' label='Email' value={profileData.email} onChange={handleInputChange} errorMessage={errprofile.email? errprofile.email : ""} placeholder="Your Email"/>
           <InputForm name='status' type='text' label='Status' value={profileData.status} onChange={handleInputChange} errorMessage={errprofile.status? errprofile.status : ""} placeholder="Status"/>

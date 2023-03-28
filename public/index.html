@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Web site created using create-react-app"
+      content="A webchat and vidocalling application"
     />
     <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -22,11 +22,90 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Penyatu</title>
+    <style>
+      html,body{
+        margin: 0;
+        padding: 0;
+      }
+      .sloading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+  
+      .sloading-circle {
+        width: 6rem;
+        height: 6rem;
+        /* border-top-width: 2px;
+        border-bottom-width: 2px;
+        border-top-color: #f16c00;
+        border-radius: 9999px; */
+        animation: spin 1s ease-in-out infinite;
+        /* border-bottom-color: transparent; */
+        color: #f16c00;
+      }
+
+      .bg {
+        animation:slide 43s ease-in-out 2 alternate;
+        background-image: linear-gradient(-60deg, rgb(46, 11, 1) 50%, rgb(1, 19, 46) 50%);
+        bottom:0;
+        left:-50%;
+        opacity:.5;
+        position:fixed;
+        right:-50%;
+        top:0;
+        z-index:-1;
+      }
+
+      .bg2 {
+        animation-direction:alternate-reverse;
+        animation-duration:44s;
+      }
+
+      .bg3 {
+        animation-duration:45s;
+      }
+
+      h1 {
+        font-family:monospace;
+      }
+
+      @keyframes slide {
+        0% {
+          transform:translateX(-25%);
+        }
+        100% {
+          transform:translateX(25%);
+        }
+      }
+  
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div class="sloading">
+      <div class="bg"></div>
+      <div class="bg bg2"></div>
+      <div class="bg bg3"></div>
+      <div id="root">
+        <div class="sloading-circle">
+          <p>&#x2981;</p>
+        </div>
+      </div>
+    </div>
+    
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
@@ -37,5 +116,45 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+    
+    <script type="text/javascript">
+      // new FinisherHeader({
+      //   "count": 5,
+      //   "size": {
+      //     "min": 1000,
+      //     "max": 1500,
+      //     "pulse": 0
+      //   },
+      //   "speed": {
+      //     "x": {
+      //       "min": 0,
+      //       "max": 0
+      //     },
+      //     "y": {
+      //       "min": 0,
+      //       "max": 0
+      //     }
+      //   },
+      //   "colors": {
+      //     "background": "#000000",
+      //     "particles": [
+      //     "#ff7500",
+      //     "#000000",
+      //     "#111a6a",
+      //     "#580468",
+      //     "#6e0202"
+      //     ]
+      //   },
+      //   "blending": "none",
+      //   "opacity": {
+      //     "center": 0.5,
+      //     "edge": 0.05
+      //   },
+      //   "skew": 0,
+      //   "shapes": [
+      //     "c"
+      //   ]
+      // });
+    </script>
   </body>
 </html>

@@ -11,7 +11,7 @@ export type DialogProps = {
 const MyDialog: React.FC<DialogProps> = (props) => {
   return (
   <Transition appear show={props.isDialogOpen} as={Fragment}>
-    <Dialog as="div" className="relative z-10 " onClose={props.toggleDialog}>
+    <Dialog as="div" className="relative z-50" onClose={props.toggleDialog}>
       <Transition.Child
         as={Fragment}
         enter="ease-out duration-300"
@@ -35,7 +35,7 @@ const MyDialog: React.FC<DialogProps> = (props) => {
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-slate-900 p-6 text-left align-middle shadow-xl transition-all">
+            <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-esecondary-color p-6 text-left align-middle shadow-xl transition-all">
               <Dialog.Title
                 as="h3"
                 className="text-lg font-medium leading-6 text-gray-200"

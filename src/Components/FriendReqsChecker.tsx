@@ -59,7 +59,7 @@ const FriendReqsChecker: React.FC<Props> = (props) => {
   return (
     <>
     { count > 0 &&
-      <div className="flex flex-col rounded-md sm:bg-esecondary-color m-2 px-4 py-2">
+      <div className="flex flex-col rounded-md bg-esecondary-color m-2 px-4 py-2 bg-opacity-50">
         <div className="w-fit">
           <Link to={process.env.PUBLIC_URL+"/friendrequest"} className="my-auto p-1 flex flex-row items-center text-eprimary-color hover:text-blue-400">
             <i className="p-2"><MdPersonAdd size={28}/></i>

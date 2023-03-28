@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation } from 'react-query';
 import MyDialog from '../../Components/MyDialog';
 import { JsonRPC2 } from '../../lib/MyJsonRPC2';
@@ -22,10 +22,12 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
   const searchParams = new URLSearchParams(window.location.search);
   const countInit = parseInt(searchParams.get('c')??"3");
 
-  const [digits, setDigits] = useState(['', '', '', '', '', '']);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [dialogMessage, setDialogMessage] = React.useState('Hello!');
-  const [dialogTitle, setDialogTitle] = React.useState('A Title');
+  const [digits, setDigits]  = useState(['', '', '', '', '', '']);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [isKeyDownProcessed, setIsKeyDownProcessed] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState('Hello!');
+  const [dialogTitle, setDialogTitle] = useState('A Title');
 
   const mutationResult = useMutation(
   (rpc : JsonRPC2) => fetch(API_URL+'/usr/rpc', {//fetch(process.env.PUBLIC_URL+'/usr/rpc', {
@@ -52,6 +54,7 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
         setIsDialogOpen(true)
         setDialogTitle("Error "+data.error.code)
         setDialogMessage(data.error.message)
+        setDigits(['', '', '', '', '', ''])
       }
     },
     onError: (error, v, ctx) => {
@@ -60,6 +63,7 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
       setIsDialogOpen(true)
       setDialogTitle("Info")
       setDialogMessage("Server Busy")
+      setDigits(['', '', '', '', '', ''])
     }
   }
 );
@@ -102,32 +106,6 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
   );
   const resendCode = mutationResendCode.mutate;
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newDigits = [...digits];
-    let start = 0
-    while (index < 6 && start < event.target.value.length){
-      newDigits[index] = event.target.value[start];
-      start += 1
-      index += 1
-    }
-    
-    setDigits(newDigits);
-
-
-    if (event.target.value.length === 1){
-      const nextInput = event.target.nextSibling as HTMLInputElement;
-      if (nextInput && event.target.value) {
-        nextInput.focus();
-      }
-    }
-
-    if (newDigits.every((digit) => digit)) {
-      let r: ConfirmRegCode = {uid:props.user.uid, jwt:props.user.jwt, code:newDigits.join('')}
-      let rpc : JsonRPC2 = new JsonRPC2("ConfirmRegistration",r)
-      confirmReg(rpc);
-    }
-  };
-
   const toggleDialog = () => {
     setIsDialogOpen(prevState => !prevState);
   }
@@ -136,10 +114,82 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
     let rpc : JsonRPC2 = new JsonRPC2("ResendCode",{uid:props.user.uid})
     resendCode(rpc);
   }
+  
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (!isKeyDownProcessed) {
+      setIsKeyDownProcessed(true);
+
+      const { key } = event;
+
+      if (key === "Backspace" || key === "Delete") {
+        event.preventDefault();
+        const newInputValues = [...digits];
+        newInputValues[index] = "";
+        setDigits(newInputValues);
+
+        if (key === "Backspace" && index > 0) {
+          inputRefs.current[index - 1]?.focus();
+        // } else if (key === "Delete" && index < inputRefs.current.length - 1) {
+        //   inputRefs.current[index + 1]?.focus();
+        }
+      } else if (key.length === 1 && /^[0-9]$/.test(key)) {
+        event.preventDefault();
+        const newInputValues = [...digits];
+        newInputValues[index] = key;
+        setDigits(newInputValues);
+
+        if (index < inputRefs.current.length - 1) {
+          inputRefs.current[index + 1]?.focus();
+        }
+      }
+    }
+  };
+
+  const handleKeyUp = () => {
+    setIsKeyDownProcessed(false);
+
+    if (digits.every((digit) => digit)) {
+      const r: ConfirmRegCode = { uid: props.user.uid, jwt: props.user.jwt, code: digits.join("") };
+      const rpc: JsonRPC2 = new JsonRPC2("ConfirmRegistration", r);
+      confirmReg(rpc);
+    }
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (!(event.target.value.length  >= 6 && index === 0)) return
+
+    const newDigits = [...digits];
+    let start = 0;
+  
+    while (index < 6 && start < event.target.value.length) {
+      newDigits[index] = event.target.value[start];
+      start += 1;
+      index += 1;
+    }
+  
+    setDigits(newDigits);
+  
+    // if (event.target.value.length === 1) {
+    //   const nextInput = event.target.nextSibling as HTMLInputElement;
+    //   if (nextInput && event.target.value) {
+    //     nextInput.focus();
+    //   }
+    // }
+  
+    // if (newDigits.every((digit) => digit)) {
+    //   const r: ConfirmRegCode = { uid: props.user.uid, jwt: props.user.jwt, code: newDigits.join("") };
+    //   const rpc: JsonRPC2 = new JsonRPC2("ConfirmRegistration", r);
+    //   confirmReg(rpc);
+    // }
+  }
+  
   return (
-    <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-      <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog} >
+    <div className="p-4 w-full h-full flex flex-col justify-start items-center">
+      <MyDialog title={dialogTitle} isDialogOpen={isDialogOpen} toggleDialog={toggleDialog}>
         <p>{dialogMessage}</p>
       </MyDialog>
       <h1 className="text-2xl font-bold text-center mt-12 mb-6">Confirm Registration</h1>
@@ -150,6 +200,12 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
             key={index}
             type="text"
             value={digit}
+            maxLength={index === 0? 6 : 1}
+            ref={(input) => {
+              inputRefs.current[index] = input;
+            }}
+            onKeyDown={(event) => handleKeyDown(event, index)}
+            onKeyUp={handleKeyUp}
             onChange={(event) => handleChange(event, index)}
             className="shadow appearance-none border rounded w-10 h-10 text-gray-700 text-center font-bold text-xl leading-tight focus:outline-none focus:shadow-outline mr-2"
           />
@@ -157,11 +213,12 @@ const ConfirmRegistration: React.FC<Props> = (props) => {
       </form>
       {status === "loading" && <p>Loading...</p>}
       {status === "error" && <p>Error: {"Server Error!"}</p>}
-      <div className='mt-8'>
-        <Countdown onResend={resendRegEmail} countInit={countInit}/>
+      <div className="mt-8">
+        <Countdown onResend={resendRegEmail} countInit={countInit} />
       </div>
     </div>
   );
+  
 };
 
 export default ConfirmRegistration;

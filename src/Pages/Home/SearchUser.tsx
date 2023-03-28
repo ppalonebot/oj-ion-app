@@ -158,7 +158,7 @@ const SearchUser: React.FC<Props> = (props) => {
   return (
   <>
     <LoadingBar loading={status==='loading'} />
-    <div className='sm:bg-esecondary-color m-2 py-6 px-2 lg:px-6 rounded-lg'>
+    <div className='bg-esecondary-color m-2 py-6 px-2 lg:px-6 rounded-lg bg-opacity-50'>
       <MyDialog title={dialogProps.title} isDialogOpen={dialogProps.isDialogOpen} toggleDialog={toggleDialog} >
         {dialogProps.children}
       </MyDialog>

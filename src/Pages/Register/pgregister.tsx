@@ -141,8 +141,9 @@ const UserRegister: React.FC = () => {
         <p>{dialogMessage}</p>
       </MyDialog>
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-        <h1 className='text-3xl p-8'>Register</h1>
-        <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
+        
+        <form onSubmit={handleSubmit} className="bg-esecondary-color shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full bg-opacity-50">
+          <p className='text-3xl p-4 mb-4 text-center '>Register</p>
           <InputForm name='name' type='text' label='Your Name' value={name} onChange={handleInputChange} errorMessage={errRegister.name? errRegister.name : ""} placeholder="ex: Susan Lee"/>
           <InputForm name='username' type='text' label='Username' value={username} onChange={handleInputChange} errorMessage={errRegister.username? errRegister.username : ""} placeholder="Your unique username"/>
           <InputForm name='email' type='email' label='Email' value={email} onChange={handleInputChange} errorMessage={errRegister.email? errRegister.email : ""} placeholder="Your Email"/>

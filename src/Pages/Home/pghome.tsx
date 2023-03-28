@@ -24,16 +24,37 @@ const Home: React.FC<Props> = (props) => {
 
       <ConfirmRegistration user={userself} onValid={RegistrationConfirmed}/> : 
 
-      <div className='p-4 min-w-[100vw] min-h-[100vh] flex flex-col justify-start items-center'>
-        <h1 className='text-center text-4xl'>PESATU</h1>
-        <p className='font-signature text-center text-xl'>Bringing people and technology together</p>
-        <div className='p-8 w-full flex justify-center items-center gap-4 max-w-lg'>
-          <Link to={process.env.PUBLIC_URL+"/login"} className="text-center w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Login
-          </Link >
-          <Link to={process.env.PUBLIC_URL+"/register"} className="text-center w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-            Register
-          </Link>
+      <div className='w-screen h-screen overflow-auto'>
+        <div className='flex flex-wrap justify-start items-center overflow-auto'>
+          <div className='flex flex-1 min-w-[384px] h-screen flex-col justify-center items-center'>
+            <h1 className='text-center text-4xl'>PENYATU</h1>
+            <p className='font-signature text-center text-xl'>Bringing people and technology together</p>
+            <p className='p-4 mt-4 text-lg text-center max-w-lg'>Introducing our revolutionary web app chat platform - the perfect solution for staying connected with friends, family, and colleagues no matter where you are in the world.</p>
+            <div className='p-8 mb-4 w-full flex justify-center items-center gap-4 max-w-lg'>
+              <Link to={process.env.PUBLIC_URL+"/login"} className="text-center w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Log In
+              </Link >
+              <Link to={process.env.PUBLIC_URL+"/register"} className="text-center w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                Sign Up
+              </Link>
+            </div>
+          </div>
+          
+          <div className='flex flex-1 min-w-[384px] h-screen flex-row justify-center items-center gap-2'>
+            <div className='flex flex-1 justify-center ml-2 p-4'>
+              <div className="shadow-lg shadow-eprimary-color relative flex flex-col bg-slate-300 rounded-2xl overflow-hidden w-[200px] h-[400px] py-2 pb-4 px-1">
+                <div className='mx-auto mb-1 w-7 h-1 bg-black rounded-full'></div>
+                <div className="bg-black flex flex-1 h-full rounded-xl">
+                  
+                </div>
+              </div>
+            </div>
+            <div className='flex flex-auto flex-col'>
+              <h1 className='text-4xl'>Web Chating</h1>
+              <p className='text-lg mb-4 max-w-lg'>Say goodbye to the limitations of traditional messaging apps and hello to our game-changing web app chat platform.</p>
+              <p className='mb-16'><button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Next</button></p>
+            </div>
+          </div>
         </div>
       </div>
     }

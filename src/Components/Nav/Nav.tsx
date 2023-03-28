@@ -154,7 +154,7 @@ const Nav: React.FC<Props> = (props) => {
     {
       props.isLoading? <Loading/> :
       props.error? <p>Error:  {(props.error as { message: string }).message}</p> :
-      <main className={show ? 'space-toggle' : ''}>
+      <main className={(show ? 'lg:pl-[300px]' : '')}>
         <header className={`header ${show ? 'space-toggle' : ''}`}>
           <div className="flex gap-4 max-h-full" >
             <div onClick={() => setShow(!show)} className="header-toggle icon hover:text-elight-font-color ml-2 flex items-center">{show ? <MdMenuOpen /> : <MdMenu />}</div>

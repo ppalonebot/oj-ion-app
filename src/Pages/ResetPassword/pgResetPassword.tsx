@@ -132,8 +132,8 @@ const ResetPassword: React.FC= () => {
           </Link >
           </div> :
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-        <h1 className='text-3xl p-8'>Reset Password</h1>
-        <form onSubmit={handleSubmit} className="bg-gray-900 shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full">
+        <form onSubmit={handleSubmit} className="bg-esecondary-color shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full bg-opacity-50">
+        <p className='text-3xl p-4 mb-4 text-center'>Reset Password</p>
           <InputForm name='email' type='email' label='Email' value={email??""} onChange={handleInputChange} errorMessage={err.email??""} placeholder="Email address to accept reset"/>
           <div className='w-full flex justify-end'>
             <button disabled={status === 'loading'} type="submit" className="w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>

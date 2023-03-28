@@ -136,6 +136,8 @@ main {
 
 .sidebar.show {
   left: 0;
+  position: fixed;
+  top: 0;
 }
 
 .space-toggle {
@@ -163,6 +165,7 @@ main {
 
   .sidebar {
     left: 0;
+    background-color: #000c;;
   }
 
   .sidebar.show {
