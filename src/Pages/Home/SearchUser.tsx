@@ -156,72 +156,74 @@ const SearchUser: React.FC<Props> = (props) => {
   },[])
 
   return (
-  <>
-    <LoadingBar loading={status==='loading'} />
-    <div className='bg-esecondary-color m-2 py-6 px-2 lg:px-6 rounded-lg bg-opacity-50'>
-      <MyDialog title={dialogProps.title} isDialogOpen={dialogProps.isDialogOpen} toggleDialog={toggleDialog} >
-        {dialogProps.children}
-      </MyDialog>
-      
-      <form onSubmit={handleSubmit} className=" flex gap-2 max-w-lg mx-auto">
-        <div className='w-4/5'>
-          <InputForm
-            type="text" 
-            name="search" 
-            placeholder="Enter a name or @username"
-            label='Search for user'
-            errorMessage={searchErr}
-            onChange={handleInputChange}
-            value={searchTerm}
-          />
-        </div>
+  <div className='w-full flex justify-center relative'>
+    <div className='max-w-4xl w-full'>
+      <LoadingBar loading={status==='loading'} />
+      <div className='bg-esecondary-color m-2 py-6 px-2 lg:px-6 rounded-lg bg-opacity-50'>
+        <MyDialog title={dialogProps.title} isDialogOpen={dialogProps.isDialogOpen} toggleDialog={toggleDialog} >
+          {dialogProps.children}
+        </MyDialog>
         
-        <button 
-          type="submit" 
-          className="w-1/5 bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-700 h-10 mt-7"
-          disabled={status === 'loading'}
-        >
-          <span className='hidden sm:block'>Search</span>
-          <i className='sm:hidden flex justify-center'><MdSearch size={24}/></i>
-        </button>
-      </form>
-      <div className='flex flex-wrap gap-4 justify-center'>
-      {
-        searchResult && searchResult.map((o, index) => (
-          o && <div key={o.username} className='flex flex-row flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
-            <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="my-auto">
-              <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
-            </Link>
-            <div className='my-auto ml-2 flex-1 overflow-hidden'>
-              <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="hover:text-blue-400">
-                <p>{o.name}</p>
-                <p>@{o.username}</p>
-              </Link>
-              
-            </div>
-            <div className='flex w-20'>
-              <CttStatus contact={o.contact} uid={props.user.uid} target={o.username}/>
-            </div>
+        <form onSubmit={handleSubmit} className=" flex gap-2 max-w-lg mx-auto">
+          <div className='w-4/5'>
+            <InputForm
+              type="text" 
+              name="search" 
+              placeholder="Enter a name or @username"
+              label='Search for user'
+              errorMessage={searchErr}
+              onChange={handleInputChange}
+              value={searchTerm}
+            />
           </div>
-        ))
-      }
-      {
-        (searchResult.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
-      }
-      {
-        (searchResult.length === 0) &&<p>{status==='loading' ? "Loading..." : "No result!"}</p>
-      }
+          
+          <button 
+            type="submit" 
+            className="w-1/5 bg-blue-500 text-white rounded py-2 px-4 hover:bg-blue-700 h-10 mt-7"
+            disabled={status === 'loading'}
+          >
+            <span className='hidden sm:block'>Search</span>
+            <i className='sm:hidden flex justify-center'><MdSearch size={24}/></i>
+          </button>
+        </form>
+        <div className='flex flex-wrap gap-4 justify-center'>
+        {
+          searchResult && searchResult.map((o, index) => (
+            o && <div key={o.username} className='flex flex-row flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
+              <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="my-auto">
+                <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
+              </Link>
+              <div className='my-auto ml-2 flex-1 overflow-hidden'>
+                <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="hover:text-blue-400">
+                  <p>{o.name}</p>
+                  <p>@{o.username}</p>
+                </Link>
+                
+              </div>
+              <div className='flex w-20'>
+                <CttStatus contact={o.contact} uid={props.user.uid} target={o.username}/>
+              </div>
+            </div>
+          ))
+        }
+        {
+          (searchResult.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
+        }
+        {
+          (searchResult.length === 0) &&<p>{status==='loading' ? "Loading..." : "No result!"}</p>
+        }
+        </div>
+        {
+          (searchResult.length > 0 || paging.page > 1 || status==='loading') && 
+          <Pagination {...paging} 
+            nextBtn={nextSearching} 
+            prevBtn={prevSearching} 
+            loading={status==='loading'}
+          />
+        }
       </div>
-      {
-        (searchResult.length > 0 || paging.page > 1 || status==='loading') && 
-        <Pagination {...paging} 
-          nextBtn={nextSearching} 
-          prevBtn={prevSearching} 
-          loading={status==='loading'}
-        />
-      }
     </div>
-  </>
+  </div>
   );
 };
 

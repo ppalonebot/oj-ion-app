@@ -73,7 +73,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
     if (props.setNavTitle) props.setNavTitle( props.target[owner] ? props.target[owner].name : "@"+owner)
     if (props.setNavSubTitle && props.target[owner]) props.setNavSubTitle( props.target[owner].datas.wsStatus)
-    if (ctx.Comm !== null && owner && !props.target[owner]) {
+    if (ctx.Comm !== null && ctx.Comm.isWsConnected && owner && !props.target[owner]) {
       //init data:
       let d: ContactData = {
         updated: new Date(),
@@ -228,7 +228,7 @@ const Messenger: React.FC<MessengerProps> = (props) => {
 
   return (
     <>
-    <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full bg-black bg-opacity-75">
+    <div ref={msgContainerRef} onScroll={handleScroll} className="flex-1 overflow-auto flex justify-center w-full bg-black bg-opacity-40 backdrop-blur-sm">
       <div className="max-w-3xl w-full">
         <div className='h-10 w-full'>
         {!btnLoad && props.target[owner] && props.target[owner].datas.page >=0 && <button onClick={loadMoreMessage} className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Load</button>}

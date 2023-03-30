@@ -36,7 +36,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
   const [localStreamSs, setLocalStreamSs] = React.useState<LocalStream | null>(null)
 
   const [client, setClient] = React.useState<OjClient | null>(null)
-  const streams: Record<string, any> = ({})
+  const [streams, setStreams] = React.useState<Record<string, any>>({})
   const [showMenu, setShowMenu] = React.useState<boolean>(true)
   const [showMessage, setShowMessage] = React.useState<boolean>(false)
   const [status, setStatus] = React.useState<string>("idle")
@@ -72,9 +72,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
   },[]);
 
   const toggleMuteAllPeers = () => {
-    console.log(streams)
     for (const key in streams) {
-      
       const { videoElement, control} = streams[key];
       if (videoElement) {
         (videoElement as HTMLVideoElement).muted = !remoteVideoIsMuted
@@ -82,7 +80,6 @@ const Echo: React.FC<EchoProps> = (props) =>{
         // Find the mute button in the control div by class name
         const muteButton = (control as HTMLDivElement)?.querySelector<HTMLButtonElement>(".mutebtn");
         if (muteButton) {
-          console.log("Update the mute button's innerHTML based on the remoteVideoIsMuted value")
           muteButton.innerHTML = remoteVideoIsMuted ? '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>' : 
           '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20" width="20" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M16.5 12A4.5 4.5 0 0014 7.97v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0021 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 003.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>';
         }
@@ -152,8 +149,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
     controlsElement.appendChild(maximizeButton);
 
     const container = document.createElement("div");
-    container.className = "relative flex flex-col gap-2 flex-1 min-w-[448px] max-w-md justify-between rounded-lg";
-    // container.className = "relative flex flex-col gap-2 flex-1 min-w-[448px] max-w-md justify-between rounded-lg border border-dashed p-[1px]";
+    container.className = "flex flex-auto min-w-[300px] w-[486px] max-w-fit sm:max-h-fit max-h-[50vh] relative overflow-hidden justify-center items-center bg-black rounded sm:m-1";
     container.appendChild(bg);
     container.appendChild(remoteVideo);
     container.appendChild(controlsElement)
@@ -162,7 +158,8 @@ const Echo: React.FC<EchoProps> = (props) =>{
   
     // Save the stream, video element, and title element in the map.
     streams[stream.id] = { stream, videoElement: remoteVideo, background:bg, control: controlsElement};
-    console.log("add stream id: " + stream.id);
+    setStreams(streams)
+    // console.log("add stream id: " + stream.id);
 
     // const childDivs = divRemote?.current?.querySelectorAll('#wc.hidden, #ss.hidden');
     // if(childDivs && childDivs.length >= 2){
@@ -170,6 +167,13 @@ const Echo: React.FC<EchoProps> = (props) =>{
     //   hl?.forEach(childDiv => {
     //     childDiv.classList.add('hidden');
     //   });
+    // }
+
+    // if (divRemote.current && !divRemote.current.className.includes(" flex-wrap-reverse lg:flex-wrap")){
+    //   let s = divRemote.current.className
+    //   s = s.replace(" flex-wrap"," flex-wrap-reverse lg:flex-wrap")
+    //   if (s) divRemote.current.className = s
+    //   console.log(divRemote.current.className)
     // }
   }
 
@@ -181,12 +185,12 @@ const Echo: React.FC<EchoProps> = (props) =>{
       let cl = new OjClient(ctx.Comm, config)
 
       cl.ontrack = (track, stream) => {
-        console.log("got track", track.id, "for stream", stream.id, "kind", track.kind);
+        // console.log("got track", track.id, "for stream", stream.id, "kind", track.kind);
         track.onended = () => {
           console.log("track ended", track.id, "for stream", stream.id, "kind", track.kind);
         };
         track.onunmute = () => {
-          console.log("track onunmute", track.id, "for stream", stream.id, "kind", track.kind);
+          // console.log("track onunmute", track.id, "for stream", stream.id, "kind", track.kind);
           if (track.kind === "video") {
             if (streams[stream.id]) {
               const { videoElement, background } = streams[stream.id];
@@ -198,7 +202,7 @@ const Echo: React.FC<EchoProps> = (props) =>{
           }
         };
         track.onmute = () => {
-          console.log("track onmute", track.id, "for stream", stream.id, "kind", track.kind);
+          // console.log("track onmute", track.id, "for stream", stream.id, "kind", track.kind);
           if (track.kind === "video") {
             if (streams[stream.id]) {
               const { videoElement, background } = streams[stream.id];
@@ -217,13 +221,20 @@ const Echo: React.FC<EchoProps> = (props) =>{
         // When this stream removes a track, assume
         // that its going away and remove it.
         stream.onremovetrack = (ev) => {
-          console.log("onremovetrack", ev.track.id, "for stream", stream.id, "kind", ev.track.kind);
+          // console.log("onremovetrack", ev.track.id, "for stream", stream.id, "kind", ev.track.kind);
           try {
             if (streams[stream.id]) {
               const { videoElement } = streams[stream.id];
               divRemote?.current?.removeChild(videoElement.parentElement);
               delete streams[stream.id];
-              console.log("remove stream id: " + stream.id);
+              setStreams(streams)
+
+              // if (divRemote.current && divRemote.current.className.includes(" flex-wrap-reverse lg:flex-wrap") && Object.keys(streams).length === 0){
+              //   let s = divRemote.current.className
+              //   s = s.replace(" flex-wrap-reverse lg:flex-wrap", " flex-wrap")
+              //   if (s) divRemote.current.className = s
+              //   console.log(divRemote.current.className)
+              // }
             }
           } catch (err) {
             console.log(err);
@@ -453,12 +464,12 @@ const Echo: React.FC<EchoProps> = (props) =>{
           </Transition>
         </div>
         
-        <div ref={divRemote} className={`flex items-center justify-center gap-2 w-full min-h-screen max-h-screen overflow-auto ${Object.keys(streams).length > 0 ? "flex-wrap-reverse lg:flex-wrap":"flex-wrap"}`}>
+        <div ref={divRemote} className={"flex items-center justify-center sm:gap-2 w-full min-h-screen max-h-screen overflow-auto flex-wrap-reverse lg:flex-wrap"}>
           {okButton && <div id="hl" className={`${(localStream) ? "hidden" : ""} absolute z-10 p-4 bg-eprimary-color bg-opacity-80 max-w-lg rounded text-black text-lg font-semibold`}>
             <p>Click the <span className='text-blue-800 font-extrabold'>"Publish"</span> button so that your friend can see and hear you.</p>
             <p className='text-center mt-2'><button onClick={()=>setOkButton(false)} className='bg-orange-600 hover:bg-orange-700 rounded py-1 px-4'>ok</button></p>
           </div>}
-          <div id="wc" className={`${localStream? "" :"hidden"} flex flex-col flex-1 min-w-[448px] max-w-md relative`}>
+          <div id="wc" className={`${localStream? "" :"hidden"} flex flex-auto min-w-[300px] max-w-[486px] sm:max-h-fit max-h-[50vh] relative overflow-hidden justify-center items-center bg-black rounded sm:m-1`}>
             <div className="absolute top-0 right-0 z-10">
               <button onClick={maxWebCam} className="bg-opacity-10 hover:bg-opacity-40 bg-blue-500 font-bold py-2 px-2 rounded"><MdOutlineFullscreen size={20} /></button>
               <button onClick={unpublish} className="bg-opacity-10 hover:bg-opacity-40 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
@@ -466,15 +477,11 @@ const Echo: React.FC<EchoProps> = (props) =>{
             <video
               ref={elWebcam}
               id="local-video"
-              style={{
-                backgroundColor: "black",
-                maxHeight: "50vh"
-              }}
               controls={false}
-              className="rounded-lg"
+              className="rounded-lg mx-auto"
               defaultChecked />
           </div>
-          <div id="ss" className={`${localStreamSs? "" :"hidden"} flex flex-col flex-1 min-w-[448px] max-w-md relative`}>
+          <div id="ss" className={`${localStreamSs? "" :"hidden"} flex flex-auto min-w-[300px] w-[486px] max-w-fit sm:max-h-fit max-h-[50vh] relative overflow-hidden justify-center items-center bg-black rounded sm:m-1`}>
             <div className="absolute top-0 right-0 z-10">
               <button onClick={maxSharedScreen} className="bg-opacity-10 hover:bg-opacity-40 bg-blue-500 font-bold py-2 px-2 rounded"><MdOutlineFullscreen size={20} /></button>
               <button onClick={unpublishScreenSharing} className="bg-opacity-10 hover:bg-opacity-40 bg-red-500 font-bold py-2 px-2 rounded"><MdClose size={20} /></button>
@@ -482,12 +489,8 @@ const Echo: React.FC<EchoProps> = (props) =>{
             <video
               ref={elSharedScreen}
               id="local-sscreen"
-              style={{
-                backgroundColor: "black",
-                maxHeight: "50vh",
-              }}
               controls={false} 
-              className="rounded-lg"
+              className="rounded-lg mx-auto"
               defaultChecked/>
             
           </div>

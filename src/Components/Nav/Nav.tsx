@@ -3,7 +3,7 @@ import { User } from "../../Entity/User/User_model";
 import Avatar from "../Avatar";
 import { Link, useNavigate } from "react-router-dom";
 import './style.css';
-import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen, MdQuestionAnswer} from 'react-icons/md';
+import {  MdMenu, MdClose, MdPeopleAlt, MdLens, MdOutlinePowerSettingsNew, MdKeyboardTab, MdMenuOpen, MdQuestionAnswer, MdVideocam} from 'react-icons/md';
 import MyMenu, { MenuItem } from "../MyMenu";
 import { API_URL } from "../../global";
 // import { myContext } from "../../lib/Context";
@@ -51,6 +51,21 @@ const Nav: React.FC<Props> = (props) => {
 
   const getParam = (key:string) =>{
     return new URLSearchParams(window.location.search).get(key)??""
+  }
+
+  const menuVideoCall = () =>{
+    const active = document.querySelector("a.nav-link.active")
+    if (active){
+      const href = active.getAttribute("href");
+      if (href && href.includes("message?")){
+        const url = new URL(href!, window.location.href);
+        const params = new URLSearchParams(url.search);
+        const uname = params.get("usr");
+        if (uname && props.target && props.target[uname]){
+          if (window.location.pathname === "/message") navigate(process.env.PUBLIC_URL+'/echo?usr='+uname); 
+        }
+      }
+    }
   }
 
   const menuCloseRoom = () =>{
@@ -111,6 +126,14 @@ const Nav: React.FC<Props> = (props) => {
       title: "Close room to save memory",
       isLink: false,
       icon:<MdKeyboardTab size={24}/>,
+    })
+    links.push({
+      key: "videocall",
+      label: "Video Call",
+      onClick:menuVideoCall,
+      title: "Start video call",
+      isLink: false,
+      icon:<MdVideocam size={24}/>,
     })
   }
 

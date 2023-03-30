@@ -102,7 +102,7 @@ const ChatInput: React.FC<Props> = (props) => {
   },[])
 
   return(
-    <div className='w-full md:p-3 p-2 bg-esecondary-color bg-opacity-50'>
+    <div className='w-full md:p-3 p-2 bg-esecondary-color'>
       {isFriend && <form onSubmit={handleSubmit} className='flex flex-row gap-2 items-center'>
         <TextAreaForm className='flex-1' 
           name='message' 

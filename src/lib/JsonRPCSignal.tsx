@@ -43,7 +43,7 @@ class JsonRPCSignal implements Signal {
     this.socket = new WebSocket(uri);
     this.socket.addEventListener('open', this.onWebsocketOpen);
     this.socket.addEventListener('error', (e) => {
-      if (this.errorCount > 20){
+      if (this.errorCount > 10){
         this.wsErrorHandle()
       } else {
         console.log(e)
@@ -113,7 +113,7 @@ class JsonRPCSignal implements Signal {
   }
 
   handleRoomJoined = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     if (this.contact[msg.sender.username]){
       if (this.contact[msg.sender.username].datas.firstLoad){
         let sender = msg.sender as TargetUser
@@ -152,17 +152,17 @@ class JsonRPCSignal implements Signal {
   }
 
   handleUserJoined = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     this.setContactWsStatus(msg.sender.username,msg.sender.name,"online")
   }
 
   handleUserLeft = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     this.setContactWsStatus(msg.sender.username,msg.sender.name,"offline")
   }
 
   handleChatMessage = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     if (this.contact){
       let message = msg as Message
       let found = false
@@ -197,7 +197,7 @@ class JsonRPCSignal implements Signal {
   }
 
   handleGetMessage = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     if (this.contact){
       let m = msg as Messages
       let found = false
@@ -255,7 +255,7 @@ class JsonRPCSignal implements Signal {
   }
 
   handleDelivered = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     this.updateChatPage()
     if (this.contact){
       let m = msg as Messages
@@ -281,7 +281,7 @@ class JsonRPCSignal implements Signal {
   }
 
   handleHasBeenRead = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     this.updateChatPage()
     if (this.contact){
       let m = msg as Message
@@ -308,7 +308,7 @@ class JsonRPCSignal implements Signal {
   }
 
   handleInfo = (msg:any) => {
-    console.log(msg)
+    // console.log(msg)
     if (msg.status === "error"){
       let act: string[] = msg.message.split(",");
       if (act[0] === 'join-room-private'){
@@ -345,11 +345,13 @@ class JsonRPCSignal implements Signal {
   onWebsocketOpen = () => {
     console.log("connected to WS!")
     this.setCurrentReconnectDelay(initialReconnectDelay)
+    this.isWsConnected = true
     this.setIsWsConnected(true)
   }
 
   onWebsocketClose = (ev:Event) => {
     console.log("diconnected from WS!")
+    this.isWsConnected = false
     this.setIsWsConnected(false)
 
     setTimeout(() => {
@@ -364,26 +366,26 @@ class JsonRPCSignal implements Signal {
   }
 
   async join(sid: any, uid: any, offer: any) : Promise<RTCSessionDescriptionInit> {
-    console.log("JsonRPCSignal send join: "+sid+", uid:"+uid)
-    console.log(offer)
+    // console.log("JsonRPCSignal send join: "+sid+", uid:"+uid)
+    // console.log(offer)
     return this.call('join', { sid, uid, offer });
   }
 
   trickle(trickle: any) {
-    console.log("-----JsonRPCSignal send trickle:"+trickle.target)
-    console.log(trickle)
+    // console.log("-----JsonRPCSignal send trickle:"+trickle.target)
+    // console.log(trickle)
     this.notify('trickle', trickle);
   }
 
   async offer(offer: any) : Promise<RTCSessionDescriptionInit> {
-    console.log("JsonRPCSignal send offer:")
-    console.log(offer)
+    // console.log("JsonRPCSignal send offer:")
+    // console.log(offer)
     return this.call('offer', { desc: offer });
   }
 
   answer(answer: any) {
-    console.log("JsonRPCSignal send answer:")
-    console.log(answer)
+    // console.log("JsonRPCSignal send answer:")
+    // console.log(answer)
     this.notify('answer', { desc: answer });
   }
 
@@ -394,7 +396,7 @@ class JsonRPCSignal implements Signal {
   // JsonRPC2 Call
   async call<RTCSessionDescriptionInit>(method: string, params: { sid?: any; uid?: any; offer?: any; desc?: any; }) : Promise<RTCSessionDescriptionInit> {
     let msg = new JsonRPC2(method,params)
-    console.log("call "+method+ " id: "+msg.id)
+    // console.log("call "+method+ " id: "+msg.id)
     this.socket.send(JSON.stringify(msg));
     return new Promise((resolve, reject) => {
       const handler = (event: { data: string; }) => {

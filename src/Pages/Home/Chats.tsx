@@ -103,7 +103,7 @@ const Chats: FC<Props> = (props) => {
     if (hasMountedRef.current) return
     hasMountedRef.current = true;
 
-    if (props.setNavTitle) props.setNavTitle("Chats")
+    if (props.setNavTitle && window.location.pathname !== "/message") props.setNavTitle("Chats")
     if (status === "success" || status === "error"){
       setStatus("loading")
       refetch()
@@ -177,32 +177,35 @@ const Chats: FC<Props> = (props) => {
   }
 
   return (
-    <>
-    <LoadingBar loading={status==='loading'} />
-    <FriendReqsChecker uid={props.user.uid} />
-    <div className='flex flex-col rounded-md bg-esecondary-color m-2 p-4 bg-opacity-50'>
+    <div className='w-full flex justify-center relative'>
+      <div className='max-w-4xl w-full'>
+      <LoadingBar loading={status==='loading'} />
+      <FriendReqsChecker uid={props.user.uid} />
+      <div className='flex flex-col rounded-md bg-esecondary-color m-2 p-4 bg-opacity-50'>
+        {
+          (userChats.length > 0) &&<p className='text-center mb-4'>Last Messages</p>
+        }
+        <div className='flex flex-wrap gap-4 justify-center'>
+          {elements}
+          {
+            (userChats.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
+          }
+          {
+            (userChats.length === 0) &&<p>{statuss==='loading' || (status==='loading') ? "Loading..." : "No result!"}</p>
+          }
+        </div>
       {
-        (userChats.length > 0) &&<p className='text-center mb-4'>Last Messages</p>
+        (userChats.length > 0 || paging.page > 1 || statuss==='loading') && 
+        <Pagination {...paging} 
+          nextBtn={nextSearching} 
+          prevBtn={prevSearching} 
+          loading={statuss==='loading'}
+        />
       }
-      <div className='flex flex-wrap gap-4 justify-center'>
-        {elements}
-        {
-          (userChats.length %2 > 0) && <div className='flex-1 min-w-[260px] max-w-lg px-1 sm:px-2'></div>
-        }
-        {
-          (userChats.length === 0) &&<p>{statuss==='loading' || (status==='loading') ? "Loading..." : "No result!"}</p>
-        }
       </div>
-    {
-      (userChats.length > 0 || paging.page > 1 || statuss==='loading') && 
-      <Pagination {...paging} 
-        nextBtn={nextSearching} 
-        prevBtn={prevSearching} 
-        loading={statuss==='loading'}
-      />
-    }
     </div>
-    </>
+    </div>
+    
   );
 };
 
