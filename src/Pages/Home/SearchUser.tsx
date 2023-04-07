@@ -191,7 +191,7 @@ const SearchUser: React.FC<Props> = (props) => {
           searchResult && searchResult.map((o, index) => (
             o && <div key={o.username} className='flex flex-row flex-1 min-w-[260px] max-w-lg justify-between border-l-2 px-1 sm:px-2 border-gray-700'>
               <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="my-auto">
-                <Avatar className='h-14 w-14 rounded-full object-cover' src={API_URL+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
+                <Avatar className='h-14 w-14 rounded-full object-cover' src={(o.avatar.startsWith('/') ? API_URL : "" )+(o.avatar?o.avatar:"/image/404notfound")} alt={o.username}/>
               </Link>
               <div className='my-auto ml-2 flex-1 overflow-hidden'>
                 <Link to={process.env.PUBLIC_URL+"/profile?usr="+o.username} className="hover:text-blue-400">

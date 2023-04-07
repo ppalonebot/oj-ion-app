@@ -132,7 +132,7 @@ const AvatarDetail: React.FC<Props> = (props) => {
 					props.error? <p className='text-center mt-10'>Error:  {(props.error as { message: string }).message}</p> :
 
 			<div className="flex h-screen items-center justify-center">
-					<Avatar className='' src={API_URL+(props.user.avatar?props.user.avatar:"/image/404notfound")} alt={props.user.name} />
+					<Avatar className='' src={(props.user.avatar?.startsWith('/') ? API_URL : "" )+(props.user.avatar?props.user.avatar:"/image/404notfound")} alt={props.user.name} />
 					<div className="fixed w-64 flex flex-row items-center justify-center bottom-2">
 							<input ref={inputRef} className="file-input hidden" type="file" onChange={handleImageChange} />
 							<button 

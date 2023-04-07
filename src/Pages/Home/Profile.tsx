@@ -85,10 +85,10 @@ const Profile: React.FC<Props> = (props) => {
         <>
 
         {!owner && <Link to={process.env.PUBLIC_URL+"/avatardetail"}>
-          <Avatar className="w-48 h-48 rounded-full object-cover" src={API_URL+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
+          <Avatar className="w-48 h-48 rounded-full object-cover" src={(profileData.avatar?.startsWith('/') ? API_URL : "" )+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
         </Link >}
         {owner && <Link to={process.env.PUBLIC_URL+"/imagedetail?img="+profileData.avatar.replace("/image/","")}>
-          <Avatar className="w-48 h-48 rounded-full object-cover" src={API_URL+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
+          <Avatar className="w-48 h-48 rounded-full object-cover" src={(profileData.avatar?.startsWith('/') ? API_URL : "" )+(profileData.avatar?profileData.avatar:"/image/404notfound")} alt={profileData.name}/>
         </Link >}
 
         <div className="flex flex-col justify-center">

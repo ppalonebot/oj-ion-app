@@ -34,6 +34,7 @@ const App: FC = () => {
           <Route path={process.env.PUBLIC_URL+'/friendrequest'} element={<Home page={"friendrequest"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/echo'} element={<Home page={"echo"}/>}/>
           <Route path={process.env.PUBLIC_URL+'/login'} element={<Login usr={''} pwd={''}/>}/>
+          <Route path={process.env.PUBLIC_URL+'/google/callback'} element={<Login usr={''} pwd={''}/>}/>
           <Route path={process.env.PUBLIC_URL+'/register'} element={<UserRegister />}/>
           <Route path={process.env.PUBLIC_URL+'/resetpwd'} element={<ResetPassword/>}/>
           <Route path={process.env.PUBLIC_URL+'/503'} element={<PageServiceUnavailable/>}/>

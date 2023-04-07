@@ -7,6 +7,7 @@ import MyDialog, { DialogProps } from '../../Components/MyDialog';
 import InputForm, { ErrInput } from '../../Components/InputForm/InputForm';
 import { API_URL } from '../../global';
 import { Link } from 'react-router-dom';
+import Loading from '../../Components/Loading';
 
 type Props = {
   usr: string;
@@ -61,8 +62,8 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
               setErrLogin(er as ErrLogin)
             }
           }
-          else{
-            setDialogProps({...dialogProps,isDialogOpen: true, title:"Error "+data.error.code, children:<p>{data.error.message}</p>});
+          else {
+            setDialogProps({...dialogProps,isDialogOpen: true, title:"Error " + data.error.code, children:<p>{data.error.message}</p>});
           }
         }
       },
@@ -73,8 +74,50 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
       }
     }
   );
+
+  const mutationGoogle  = useMutation(
+    (search : string) => fetch(API_URL+'/google/callback', {
+      method: 'POST',
+      body: JSON.stringify({params: {code:search}, method: "GoogleLogin"} as JsonRPC2),
+      credentials: 'include', //must included
+      headers: { 
+        'Content-Type': 'application/json',
+        'credentials': 'true' //must included
+      }
+    }).then(res => res.json()),
+    {
+      onSuccess: (data,v ,ctx) => {
+        setStatusGoogle('success')
+        if (data.result){
+          let s = new User(data.result.uid, data.result.name, data.result.username,data.result.email,data.result.jwt,data.result.isregistered)
+          s.save()
+
+          setTimeout(function() {
+            navigate('/');
+          }, 300);
+        }
+        else{
+          if (data.error.code){
+            setDialogProps({...dialogProps,isDialogOpen: true, title:"Error " + data.error.code, children:<p>{data.error.message}</p>});
+          } 
+          else {
+            setDialogProps({...dialogProps,isDialogOpen: true, title:"Error", children:<p>{data.error}</p>});
+          }
+        }
+      },
+      onError: (error, v, ctx) => {
+        setStatusGoogle('error')
+        // Do something after the mutation fails, such as showing an error message
+        console.error(error)
+        setDialogProps({...dialogProps,isDialogOpen: true, title:"Info",children:<p>Server Busy</p>});
+      }
+    }
+  );
+
   const loginUser = mutationResult.mutate;
   const status = mutationResult.status;
+  const loginGoogle = mutationGoogle.mutate;
+  const [statusGoogle, setStatusGoogle] = React.useState('idle');
 
   const handleInputChange = (event: React.FormEvent<HTMLInputElement>) => {
     const target = event.target as HTMLInputElement;
@@ -102,7 +145,20 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
     loginUser(rpc)
   }
 
-  
+  const hasMountedRef = React.useRef(false);
+  React.useEffect(()=>{
+    if (hasMountedRef.current) return
+    hasMountedRef.current = true;
+
+    if (window.location.pathname === '/google/callback'){
+      if (statusGoogle !== 'loading') {
+        loginGoogle(window.location.toLocaleString())
+        setStatusGoogle('loading')
+      }
+      
+    }
+
+  }, [])
 
   return (
     <div className='min-w-[100vw] min-h-[100vh]'>
@@ -110,7 +166,7 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
         {dialogProps.children}
       </MyDialog>
       <div className='p-4 w-full h-full flex flex-col justify-start items-center'>
-        
+        {statusGoogle === 'loading' ?  <Loading/> :
         <form onSubmit={handleSubmit} className="bg-esecondary-color shadow-md rounded px-8 pt-6 pb-8 mb-4 max-w-lg w-full bg-opacity-50">
           <p className='text-3xl p-4 mb-4 text-center'>Login</p>
           <InputForm name='username' type='text' label='Username' value={username} onChange={handleInputChange} errorMessage={errLogin.username? errLogin.username : ""} placeholder="Username or email"/>
@@ -121,10 +177,9 @@ const Login: React.FC<Props> = ({ usr, pwd }) => {
           </Link >
             <button disabled={status === 'loading'} type="submit" className="w-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Submit</button>
           </div>
-        </form>
+        </form>}
       </div>
     </div>
-    
   );
 };
 

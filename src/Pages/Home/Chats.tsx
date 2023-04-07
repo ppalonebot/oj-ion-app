@@ -149,7 +149,7 @@ const Chats: FC<Props> = (props) => {
         <Link to={process.env.PUBLIC_URL + "/profile?usr=" + o.icon_at} className="my-auto">
           <Avatar
             className="h-14 w-14 rounded-full object-cover"
-            src={API_URL + (o.icon_image ? o.icon_image : "/image/404notfound")}
+            src={(o.icon_image.startsWith('/') ? API_URL : "" ) + (o.icon_image ? o.icon_image : "/image/404notfound")}
             alt={o.icon_at}
           />
         </Link>
