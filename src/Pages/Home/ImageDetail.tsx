@@ -23,7 +23,7 @@ const ImageDetail: React.FC = () => {
 
 	return (
 		<div className="flex h-screen items-center justify-center">
-			<Avatar className='' src={API_URL+"/image/"+(image?image:"404notfound")} alt="image" />
+			<Avatar className='' src={(image.startsWith('http') ? "" : API_URL+"/image/")+(image?image:"404notfound")} alt="image" />
 		</div>
 	);
 };
